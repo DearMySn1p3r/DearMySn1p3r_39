@@ -544,6 +544,8 @@ let bgPanY = 0;
 
 let dragging = false, dox = 0, doy = 0;
 let draggingBg = false, bgDox = 0, bgDoy = 0;
+let resizing = false, resizeStartX = 0, resizeStartY = 0, resizeStartFontSize = 0;
+let rotating = false, rotateStartAngle = 0, rotateStartRot = 0;
 
 let outlineStyle = 'line';
 let txtStyleMode = 'normal';
@@ -652,36 +654,90 @@ function drawLayer(l, isExport = false, targetCtx = ctx) {
   targetCtx.restore();
 }
 
+function getSelHandles(l) {
+  ctx.save();
+  ctx.font = makeFont(l);
+  if ('letterSpacing' in ctx) ctx.letterSpacing = l.letterSpacing + 'px';
+  const tw = ctx.measureText(l.text).width;
+  ctx.restore();
+  const hw = tw / 2 + 20;
+  const hh = l.fontSize / 2 + 16;
+  // 핸들 위치 (레이어 로컬 좌표)
+  return {
+    hw, hh,
+    corners: [
+      { id: 'tl', lx: -hw, ly: -hh },
+      { id: 'tr', lx:  hw, ly: -hh },
+      { id: 'bl', lx: -hw, ly:  hh },
+      { id: 'br', lx:  hw, ly:  hh },
+    ],
+    rotate: { id: 'rot', lx: 0, ly: -hh - 28 },
+  };
+}
+
+function localToWorld(l, lx, ly) {
+  const rad = l.rotate * Math.PI / 180;
+  return {
+    x: l.x + lx * Math.cos(rad) - ly * Math.sin(rad),
+    y: l.y + lx * Math.sin(rad) + ly * Math.cos(rad),
+  };
+}
+
 function drawSelRing(l) {
+  const { hw, hh, corners, rotate: rotHandle } = getSelHandles(l);
   ctx.save();
   ctx.translate(l.x, l.y);
   ctx.rotate(l.rotate * Math.PI / 180);
-  ctx.font = makeFont(l);
-  
-  if ('letterSpacing' in ctx) {
-    ctx.letterSpacing = l.letterSpacing + "px";
-  }
-  
-  const w = ctx.measureText(l.text).width + 30;
-  const h = l.fontSize + 20;
-  
-  ctx.strokeStyle = 'rgba(79, 70, 229, 0.8)'; // Accent color
+
+  // 점선 박스
+  ctx.strokeStyle = 'rgba(79,70,229,0.85)';
   ctx.lineWidth = 1.5;
   ctx.setLineDash([6, 4]);
-  ctx.strokeRect(-w/2, -h/2, w, h);
-  
-  // Corner handles
+  ctx.strokeRect(-hw, -hh, hw * 2, hh * 2);
   ctx.setLineDash([]);
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(-w/2-3, -h/2-3, 6, 6);
-  ctx.fillRect(w/2-3, -h/2-3, 6, 6);
-  ctx.fillRect(-w/2-3, h/2-3, 6, 6);
-  ctx.fillRect(w/2-3, h/2-3, 6, 6);
-  ctx.strokeRect(-w/2-3, -h/2-3, 6, 6);
-  ctx.strokeRect(w/2-3, -h/2-3, 6, 6);
-  ctx.strokeRect(-w/2-3, h/2-3, 6, 6);
-  ctx.strokeRect(w/2-3, h/2-3, 6, 6);
 
+  // 회전 핸들 선
+  ctx.beginPath();
+  ctx.moveTo(0, -hh);
+  ctx.lineTo(0, -hh - 28);
+  ctx.strokeStyle = 'rgba(79,70,229,0.6)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.restore();
+
+  // 모서리 핸들 (흰 사각형)
+  for (const c of corners) {
+    const { x, y } = localToWorld(l, c.lx, c.ly);
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(l.rotate * Math.PI / 180);
+    ctx.fillStyle = '#fff';
+    ctx.strokeStyle = 'rgba(79,70,229,0.9)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.rect(-6, -6, 12, 12);
+    ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
+
+  // 회전 핸들 (원형)
+  const rp = localToWorld(l, rotHandle.lx, rotHandle.ly);
+  ctx.beginPath();
+  ctx.arc(rp.x, rp.y, 8, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(79,70,229,0.9)';
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  // 회전 아이콘 (화살표)
+  ctx.save();
+  ctx.translate(rp.x, rp.y);
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(0, 0, 4, -Math.PI * 0.8, Math.PI * 0.8);
+  ctx.stroke();
   ctx.restore();
 }
 
@@ -982,60 +1038,185 @@ function hitTest(x,y) {
   return null;
 }
 
-canvas.addEventListener('mousedown', e=>{
-  const {x,y}=getCoords(e);
-  const l=hitTest(x,y);
-  if (l) { 
-    dragging = true; sel(l.id); dox = x - l.x; doy = y - l.y; canvas.style.cursor = 'grabbing'; 
-  } else if (bgImage) {
-    draggingBg = true;
-    bgDox = x - bgPanX;
-    bgDoy = y - bgPanY;
-    selId = null;
-    updateLayers();
-    render();
+// ── 핸들 히트테스트 ──
+function hitHandle(x, y) {
+  const l = layers.find(l => l.id === selId);
+  if (!l) return null;
+  const { corners, rotate: rotHandle } = getSelHandles(l);
+
+  // 회전 핸들
+  const rp = localToWorld(l, rotHandle.lx, rotHandle.ly);
+  if (Math.hypot(x - rp.x, y - rp.y) < 12) return 'rot';
+
+  // 모서리 핸들
+  for (const c of corners) {
+    const { x: cx, y: cy } = localToWorld(l, c.lx, c.ly);
+    if (Math.hypot(x - cx, y - cy) < 10) return c.id;
+  }
+  return null;
+}
+
+canvas.addEventListener('mousedown', e => {
+  const { x, y } = getCoords(e);
+
+  // 선택된 레이어 핸들 먼저 체크
+  const handle = hitHandle(x, y);
+  if (handle) {
+    const l = layers.find(l => l.id === selId);
+    if (handle === 'rot') {
+      rotating = true;
+      rotateStartAngle = Math.atan2(y - l.y, x - l.x);
+      rotateStartRot = l.rotate;
+      canvas.style.cursor = 'crosshair';
+    } else {
+      resizing = true;
+      resizeStartX = x; resizeStartY = y;
+      resizeStartFontSize = l.fontSize;
+      canvas.style.cursor = 'nwse-resize';
+    }
+    return;
+  }
+
+  const l = hitTest(x, y);
+  if (l) {
+    dragging = true; sel(l.id); dox = x - l.x; doy = y - l.y;
     canvas.style.cursor = 'grabbing';
-  } else { 
-    selId = null; updateLayers(); render(); 
+  } else if (bgImage) {
+    draggingBg = true; bgDox = x - bgPanX; bgDoy = y - bgPanY;
+    selId = null; updateLayers(); render();
+    canvas.style.cursor = 'grabbing';
+  } else {
+    selId = null; updateLayers(); render();
   }
 });
-canvas.addEventListener('mousemove', e=>{
-  const {x,y}=getCoords(e);
+
+canvas.addEventListener('mousemove', e => {
+  const { x, y } = getCoords(e);
+
+  if (rotating) {
+    const l = layers.find(l => l.id === selId);
+    if (l) {
+      const angle = Math.atan2(y - l.y, x - l.x);
+      const delta = (angle - rotateStartAngle) * 180 / Math.PI;
+      l.rotate = Math.round(rotateStartRot + delta);
+      setSlider('rotRange', 'rotV', l.rotate);
+      render();
+    }
+    return;
+  }
+
+  if (resizing) {
+    const l = layers.find(l => l.id === selId);
+    if (l) {
+      const dist = Math.hypot(x - l.x, y - l.y);
+      const startDist = Math.hypot(resizeStartX - l.x, resizeStartY - l.y);
+      const ratio = dist / (startDist || 1);
+      const newSize = Math.max(10, Math.round(resizeStartFontSize * ratio));
+      l.fontSize = newSize;
+      setSlider('fsRange', 'fsV', newSize);
+      render();
+    }
+    return;
+  }
+
   if (dragging) {
-    const l=layers.find(l=>l.id===selId);
-    if (l) { l.x=x-dox; l.y=y-doy; render(); }
-  } else if (draggingBg) {
-    bgPanX = x - bgDox;
-    bgPanY = y - bgDoy;
-    render();
-  } else { 
-    canvas.style.cursor=hitTest(x,y)?'grab': (bgImage ? 'move' : 'default'); 
+    const l = layers.find(l => l.id === selId);
+    if (l) { l.x = x - dox; l.y = y - doy; render(); }
+    return;
+  }
+
+  if (draggingBg) {
+    bgPanX = x - bgDox; bgPanY = y - bgDoy; render();
+    return;
+  }
+
+  // 커서 모양
+  const handle = hitHandle(x, y);
+  if (handle === 'rot') canvas.style.cursor = 'crosshair';
+  else if (handle) canvas.style.cursor = 'nwse-resize';
+  else canvas.style.cursor = hitTest(x, y) ? 'grab' : (bgImage ? 'move' : 'default');
+});
+
+canvas.addEventListener('mouseup', () => {
+  dragging = false; draggingBg = false; resizing = false; rotating = false;
+  canvas.style.cursor = 'default';
+});
+canvas.addEventListener('mouseleave', () => {
+  dragging = false; draggingBg = false; resizing = false; rotating = false;
+});
+
+// 더블클릭 → 텍스트 바로 편집 (텍스트 탭 포커스)
+canvas.addEventListener('dblclick', e => {
+  const { x, y } = getCoords(e);
+  const l = hitTest(x, y);
+  if (l) {
+    sel(l.id);
+    // 텍스트 탭으로 전환 후 입력창 포커스
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+    document.getElementById('tab-text').style.display = 'block';
+    document.querySelector('.tab-btn').classList.add('active');
+    setTimeout(() => {
+      const inp = document.getElementById('txtInput');
+      inp.focus();
+      inp.select();
+    }, 50);
   }
 });
-canvas.addEventListener('mouseup',()=>{ dragging=false; draggingBg=false; canvas.style.cursor='default'; });
-canvas.addEventListener('mouseleave',()=>{ dragging=false; draggingBg=false; });
 
 // Touch support
-canvas.addEventListener('touchstart',e=>{ 
-  e.preventDefault(); 
-  const {x,y}=getCoords(e); 
-  const l=hitTest(x,y); 
-  if(l){
-    dragging=true; sel(l.id); dox=x-l.x; doy=y-l.y;
-  } else if (bgImage) {
-    draggingBg=true; bgDox=x-bgPanX; bgDoy=y-bgPanY; selId=null; updateLayers(); render();
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const { x, y } = getCoords(e);
+  const handle = hitHandle(x, y);
+  if (handle) {
+    const l = layers.find(l => l.id === selId);
+    if (handle === 'rot') {
+      rotating = true;
+      rotateStartAngle = Math.atan2(y - l.y, x - l.x);
+      rotateStartRot = l.rotate;
+    } else {
+      resizing = true;
+      resizeStartX = x; resizeStartY = y;
+      resizeStartFontSize = l.fontSize;
+    }
+    return;
   }
-},{passive:false});
-canvas.addEventListener('touchmove',e=>{ 
-  e.preventDefault(); 
-  const {x,y}=getCoords(e); 
-  if(dragging) {
-    const l=layers.find(l=>l.id===selId); if(l){l.x=x-dox;l.y=y-doy;render();} 
+  const l = hitTest(x, y);
+  if (l) { dragging = true; sel(l.id); dox = x - l.x; doy = y - l.y; }
+  else if (bgImage) { draggingBg = true; bgDox = x - bgPanX; bgDoy = y - bgPanY; selId = null; updateLayers(); render(); }
+}, { passive: false });
+
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const { x, y } = getCoords(e);
+  if (rotating) {
+    const l = layers.find(l => l.id === selId);
+    if (l) {
+      const angle = Math.atan2(y - l.y, x - l.x);
+      l.rotate = Math.round(rotateStartRot + (angle - rotateStartAngle) * 180 / Math.PI);
+      setSlider('rotRange', 'rotV', l.rotate);
+      render();
+    }
+  } else if (resizing) {
+    const l = layers.find(l => l.id === selId);
+    if (l) {
+      const dist = Math.hypot(x - l.x, y - l.y);
+      const startDist = Math.hypot(resizeStartX - l.x, resizeStartY - l.y);
+      const newSize = Math.max(10, Math.round(resizeStartFontSize * dist / (startDist || 1)));
+      l.fontSize = newSize;
+      setSlider('fsRange', 'fsV', newSize);
+      render();
+    }
+  } else if (dragging) {
+    const l = layers.find(l => l.id === selId);
+    if (l) { l.x = x - dox; l.y = y - doy; render(); }
   } else if (draggingBg) {
-    bgPanX=x-bgDox; bgPanY=y-bgDoy; render();
+    bgPanX = x - bgDox; bgPanY = y - bgDoy; render();
   }
-},{passive:false});
-canvas.addEventListener('touchend',()=>{dragging=false; draggingBg=false;});
+}, { passive: false });
+
+canvas.addEventListener('touchend', () => { dragging = false; draggingBg = false; resizing = false; rotating = false; });
 
 // Drag & Drop Image
 const uz = document.getElementById('uploadZone');
