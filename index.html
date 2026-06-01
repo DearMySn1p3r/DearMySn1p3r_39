@@ -304,9 +304,35 @@ input[type=color]:hover { transform: scale(1.05); }
 .outline-opt.active { background: #fff; color: var(--accent); box-shadow: var(--shadow-sm); }
 
 .grad-preview { height: 12px; border-radius: 6px; margin-bottom: 12px; border: 1px solid var(--border); }
+
+/* ── Font Preload Hidden Zone ── */
+.font-preload {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: -999;
+}
 </style>
 </head>
 <body>
+
+<div class="font-preload">
+  <span style="font-family:'Noto Sans KR'; font-weight:400;">미리받기</span>
+  <span style="font-family:'Noto Sans KR'; font-weight:700;">미리받기</span>
+  <span style="font-family:'Do Hyeon';">미리받기</span>
+  <span style="font-family:'Gugi';">미리받기</span>
+  <span style="font-family:'Jua';">미리받기</span>
+  <span style="font-family:'Hi Melody';">미리받기</span>
+  <span style="font-family:'Nanum Pen Script';">미리받기</span>
+  <span style="font-family:'East Sea Dokdo';">미리받기</span>
+  <span style="font-family:'Fredoka One';">Preload</span>
+  <span style="font-family:'Pacifico';">Preload</span>
+  <span style="font-family:'Lilita One';">Preload</span>
+</div>
+
 <div class="app">
 
 <header>
@@ -626,8 +652,11 @@ function render() {
   if (sel) drawSelRing(sel);
 }
 
+// 🌟 폰트 굵기 버그 수정 🌟
 function makeFont(l) {
-  const w = l.style === 'bold' ? '800' : (l.style === 'normal' ? '600' : '600');
+  // 불러오지 않은 굵기(800 등)를 요청하면 캔버스가 제대로 폰트를 인식하지 못합니다.
+  // Google Fonts에서 요청한 굵기(700)로 통일시킵니다.
+  const w = l.style === 'bold' ? '700' : '400';
   const i = l.style === 'italic' ? 'italic ' : '';
   return `${i}${w} ${l.fontSize}px ${l.font}`;
 }
@@ -900,7 +929,9 @@ function syncLayer() {
   l.g1 = document.getElementById('g1').value;
   l.g2 = document.getElementById('g2').value;
   l.gradDir = gradDir;
-  updateLayers(); render();
+  
+  updateLayers(); 
+  render();
 }
 
 function delLayer(id) {
@@ -961,7 +992,6 @@ function setTxtStyle(s, btn) {
   syncLayer();
 }
 
-// 🌟 신규 기능: 레이어 캔버스 정렬 (버튼을 누르는 즉시 x, y 좌표가 맞춰집니다)
 function alignCanvas(type) {
   const l = layers.find(l => l.id === selId);
   if (!l) return;
@@ -969,18 +999,16 @@ function alignCanvas(type) {
   const W = canvas.width;
   const H = canvas.height;
 
-  // 글자 실제 너비 계산
   ctx.save();
   ctx.font = makeFont(l);
   if ('letterSpacing' in ctx) ctx.letterSpacing = (l.letterSpacing||0)+'px';
   const tw = ctx.measureText(l.text).width;
   ctx.restore();
 
-  const pad = 20; // 캔버스 모서리 간격
+  const pad = 20; 
   const hw = tw / 2;
   const hh = l.fontSize / 2;
 
-  // 위치 이동
   switch(type) {
     case 'left':   l.x = hw + pad; break;
     case 'center': l.x = W / 2; break;
@@ -1135,7 +1163,7 @@ function save(fmt) {
   const tc = tmp.getContext('2d');
   
   if (bgColor !== 'transparent') { tc.fillStyle = bgColor; tc.fillRect(0,0,tmp.width,tmp.height); }
-  else { tc.fillStyle = '#ffffff'; tc.fillRect(0,0,tmp.width,tmp.height); } // 기본은 흰색
+  else { tc.fillStyle = '#ffffff'; tc.fillRect(0,0,tmp.width,tmp.height); } 
   
   if (bgImage) {
      tc.drawImage(bgImage, bgPanX, bgPanY, bgImage.width * bgScale, bgImage.height * bgScale);
@@ -1400,6 +1428,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Delete'&&selId&&document.activeElement.tagName!=='INPUT') delLayer(selId);
 });
 
+// 🌟 문서가 열리자마자 폰트가 캐싱될 때까지 기다렸다가 렌더링 시작 🌟
 window.onload = async () => {
   const l = newLayer({ text: '텍스트 입력' });
   layers.push(l);
@@ -1409,19 +1438,8 @@ window.onload = async () => {
   updateLayers();
   drawGradWheel();
 
-  const fontFamilies = [
-    "'Noto Sans KR'", "'Jua'", "'Do Hyeon'", "'Gugi'",
-    "'Hi Melody'", "'Nanum Pen Script'", "'East Sea Dokdo'",
-    "'Fredoka One'", "'Pacifico'", "'Lilita One'",
-  ];
-  const weights = ['400', '600', '800'];
-  const styles = ['normal', 'italic'];
-  const loads = [];
-  for (const f of fontFamilies)
-    for (const w of weights)
-      for (const s of styles)
-        loads.push(document.fonts.load(`${s === 'italic' ? 'italic ' : ''}${w} 60px ${f}`));
-  await Promise.allSettled(loads);
+  // 브라우저 폰트 캐싱 대기 (강제 숨김 처리된 폰트들이 모두 다운로드 될 때까지 기다립니다)
+  await document.fonts.ready;
   render();
 };
 </script>
