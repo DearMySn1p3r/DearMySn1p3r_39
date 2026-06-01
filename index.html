@@ -413,7 +413,30 @@ input[type=color]:hover { transform: scale(1.05); }
         </select>
       </div>
       <div class="field">
-        <div class="field-label">크기 <span id="fsV">60</span></div>
+        <div class="field-label">정렬</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:4px;">
+          <button class="outline-opt" id="align-left"   onclick="setAlign('left')"   title="왼쪽">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="3" width="10" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1"/><rect x="1" y="11" width="8" height="2" rx="1"/></svg>
+          </button>
+          <button class="outline-opt active" id="align-center" onclick="setAlign('center')" title="가운데">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="3" width="10" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1"/><rect x="4" y="11" width="8" height="2" rx="1"/></svg>
+          </button>
+          <button class="outline-opt" id="align-right"  onclick="setAlign('right')"  title="오른쪽">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="5" y="3" width="10" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1"/><rect x="7" y="11" width="8" height="2" rx="1"/></svg>
+          </button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;">
+          <button class="outline-opt" id="valign-top"    onclick="setVAlign('top')"    title="위">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="14" height="2" rx="1"/><rect x="5" y="4" width="6" height="9" rx="1" opacity="0.4"/><rect x="7" y="4" width="2" height="9" rx="1"/></svg>
+          </button>
+          <button class="outline-opt active" id="valign-middle" onclick="setVAlign('middle')" title="세로 중앙">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="7" width="14" height="2" rx="1"/><rect x="5" y="2" width="6" height="12" rx="1" opacity="0.4"/><rect x="7" y="2" width="2" height="12" rx="1"/></svg>
+          </button>
+          <button class="outline-opt" id="valign-bottom" onclick="setVAlign('bottom')" title="아래">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="13" width="14" height="2" rx="1"/><rect x="5" y="3" width="6" height="9" rx="1" opacity="0.4"/><rect x="7" y="3" width="2" height="9" rx="1"/></svg>
+          </button>
+        </div>
+      </div>
         <input type="range" id="fsRange" min="10" max="250" value="60" oninput="document.getElementById('fsV').textContent=this.value;syncLayer()">
       </div>
       <div class="field">
@@ -567,8 +590,10 @@ let rotating = false, rotateStartAngle = 0, rotateStartRot = 0;
 let outlineStyle = 'line';
 let txtStyleMode = 'normal';
 let gradOn = false;
-let gradDir = 0; // degrees
+let gradDir = 0;
 let bgLocked = false;
+let txtAlign = 'center';
+let txtVAlign = 'middle';
 
 // ── Render ──
 function render() {
@@ -776,6 +801,7 @@ function newLayer(overrides={}) {
     shadowColor: '#000000', shadowBlur: 0, shadowOffsetX: 0, shadowOffsetY: 0,
     opacity: 1, rotate: 0,
     outlineStyle: 'line', style: 'normal',
+    align: 'center', valign: 'middle',
     useGrad: false, g1:'#4f46e5', g2:'#ec4899', gradDir: 0,
     ...overrides
   };
@@ -798,6 +824,8 @@ function addNewTextLayer(forceText = null) {
     opacity: (parseFloat(document.getElementById('opRange').value) || 100) / 100,
     outlineStyle: outlineStyle,
     style: txtStyleMode,
+    align: txtAlign,
+    valign: txtVAlign,
     useGrad: gradOn,
   });
   
@@ -835,6 +863,11 @@ function sel(id) {
   document.querySelectorAll('#ts-normal,#ts-italic,#ts-bold').forEach(b=>b.classList.remove('active'));
   const tsEl = document.getElementById('ts-'+l.style);
   if (tsEl) tsEl.classList.add('active');
+
+  txtAlign = l.align || 'center';
+  txtVAlign = l.valign || 'middle';
+  ['left','center','right'].forEach(a => document.getElementById('align-'+a)?.classList.toggle('active', a === txtAlign));
+  ['top','middle','bottom'].forEach(a => document.getElementById('valign-'+a)?.classList.toggle('active', a === txtVAlign));
   
   gradOn = l.useGrad;
   const gt = document.getElementById('gradToggle');
@@ -877,6 +910,8 @@ function syncLayer() {
   l.opacity = (parseFloat(document.getElementById('opRange').value) || 100) / 100;
   l.outlineStyle = outlineStyle;
   l.style = txtStyleMode;
+  l.align = txtAlign;
+  l.valign = txtVAlign;
   l.useGrad = gradOn;
   l.g1 = document.getElementById('g1').value;
   l.g2 = document.getElementById('g2').value;
@@ -940,6 +975,36 @@ function setTxtStyle(s, btn) {
   document.querySelectorAll('#ts-normal,#ts-italic,#ts-bold').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   syncLayer();
+}
+
+function setAlign(a) {
+  txtAlign = a;
+  ['left','center','right'].forEach(v => document.getElementById('align-'+v)?.classList.toggle('active', v === a));
+  const l = layers.find(l => l.id === selId);
+  if (!l) return;
+  // x 좌표를 캔버스 기준으로 snap
+  const W = canvas.width;
+  ctx.font = makeFont(l);
+  if ('letterSpacing' in ctx) ctx.letterSpacing = (l.letterSpacing||0)+'px';
+  const tw = ctx.measureText(l.text).width;
+  if (a === 'left')   l.x = tw / 2 + 20;
+  if (a === 'center') l.x = W / 2;
+  if (a === 'right')  l.x = W - tw / 2 - 20;
+  l.align = a; txtAlign = a;
+  updateLayers(); render();
+}
+
+function setVAlign(a) {
+  txtVAlign = a;
+  ['top','middle','bottom'].forEach(v => document.getElementById('valign-'+v)?.classList.toggle('active', v === a));
+  const l = layers.find(l => l.id === selId);
+  if (!l) return;
+  const H = canvas.height;
+  if (a === 'top')    l.y = l.fontSize / 2 + 20;
+  if (a === 'middle') l.y = H / 2;
+  if (a === 'bottom') l.y = H - l.fontSize / 2 - 20;
+  l.valign = a; txtVAlign = a;
+  updateLayers(); render();
 }
 
 function toggleGrad() {
