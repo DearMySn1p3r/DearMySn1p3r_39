@@ -276,14 +276,14 @@ input[type=color]:hover { transform: scale(1.05); }
 .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
 .toggle.on::after { transform: translateX(18px); }
 
-/* ── Sub Options Picker (Fixed for wrapping) ── */
+/* ── Sub Options Picker ── */
 .outline-picker { 
   display: flex; 
   gap: 4px; 
   background: var(--surface2); 
   padding: 4px; 
   border-radius: 10px; 
-  flex-wrap: nowrap; /* 2줄 넘어감 방지 */
+  flex-wrap: nowrap;
 }
 .outline-opt { 
   flex: 1; 
@@ -297,9 +297,10 @@ input[type=color]:hover { transform: scale(1.05); }
   cursor: pointer; 
   text-align: center; 
   transition: all 0.15s; 
-  white-space: nowrap; /* 글자 줄바꿈 방지 */
+  white-space: nowrap;
 }
-.outline-opt:hover { color: var(--text); }
+.outline-opt:hover { background: rgba(0,0,0,0.03); color: var(--text); }
+.outline-opt:active { transform: scale(0.95); }
 .outline-opt.active { background: #fff; color: var(--accent); box-shadow: var(--shadow-sm); }
 
 .grad-preview { height: 12px; border-radius: 6px; margin-bottom: 12px; border: 1px solid var(--border); }
@@ -412,33 +413,42 @@ input[type=color]:hover { transform: scale(1.05); }
           </optgroup>
         </select>
       </div>
+
       <div class="field">
-        <div class="field-label">정렬</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:4px;">
-          <button class="outline-opt" id="align-left"   onclick="setAlign('left')"   title="왼쪽">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="3" width="10" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1"/><rect x="1" y="11" width="8" height="2" rx="1"/></svg>
+        <div class="field-label">레이어 위치 정렬 (캔버스 기준)</div>
+        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:4px;background:var(--surface2);padding:4px;border-radius:10px;">
+          <button class="outline-opt" onclick="alignCanvas('left')" title="왼쪽 끝 맞춤">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="2" width="2" height="12" rx="0.5"/><rect x="5" y="4" width="8" height="8" rx="1"/></svg>
           </button>
-          <button class="outline-opt active" id="align-center" onclick="setAlign('center')" title="가운데">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="3" width="10" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1"/><rect x="4" y="11" width="8" height="2" rx="1"/></svg>
+          <button class="outline-opt" onclick="alignCanvas('center')" title="가로 중앙 맞춤">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="7" y="2" width="2" height="12" rx="0.5"/><rect x="4" y="4" width="8" height="8" rx="1"/></svg>
           </button>
-          <button class="outline-opt" id="align-right"  onclick="setAlign('right')"  title="오른쪽">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="5" y="3" width="10" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1"/><rect x="7" y="11" width="8" height="2" rx="1"/></svg>
+          <button class="outline-opt" onclick="alignCanvas('right')" title="오른쪽 끝 맞춤">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="12" y="2" width="2" height="12" rx="0.5"/><rect x="3" y="4" width="8" height="8" rx="1"/></svg>
           </button>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;">
-          <button class="outline-opt" id="valign-top"    onclick="setVAlign('top')"    title="위">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="14" height="2" rx="1"/><rect x="5" y="4" width="6" height="9" rx="1" opacity="0.4"/><rect x="7" y="4" width="2" height="9" rx="1"/></svg>
+          <button class="outline-opt" style="border-left: 1px solid var(--border2); border-radius: 0;" onclick="alignCanvas('top')" title="위쪽 끝 맞춤">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="2" width="12" height="2" rx="0.5"/><rect x="4" y="5" width="8" height="8" rx="1"/></svg>
           </button>
-          <button class="outline-opt active" id="valign-middle" onclick="setVAlign('middle')" title="세로 중앙">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="7" width="14" height="2" rx="1"/><rect x="5" y="2" width="6" height="12" rx="1" opacity="0.4"/><rect x="7" y="2" width="2" height="12" rx="1"/></svg>
+          <button class="outline-opt" onclick="alignCanvas('middle')" title="세로 중앙 맞춤">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="7" width="12" height="2" rx="0.5"/><rect x="4" y="4" width="8" height="8" rx="1"/></svg>
           </button>
-          <button class="outline-opt" id="valign-bottom" onclick="setVAlign('bottom')" title="아래">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="13" width="14" height="2" rx="1"/><rect x="5" y="3" width="6" height="9" rx="1" opacity="0.4"/><rect x="7" y="3" width="2" height="9" rx="1"/></svg>
+          <button class="outline-opt" onclick="alignCanvas('bottom')" title="아래쪽 끝 맞춤">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="12" width="12" height="2" rx="0.5"/><rect x="4" y="3" width="8" height="8" rx="1"/></svg>
           </button>
         </div>
+        <button class="outline-opt" style="width:100%; display:flex; align-items:center; justify-content:center; gap:6px; padding:8px 0; background:var(--surface2); border-radius:10px;" onclick="alignCanvas('center-all')" title="정가운데 맞춤">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="8" cy="8" r="3" fill="currentColor" stroke="none"/><path d="M8 1v3M8 12v3M1 8h3M12 8h3"/>
+          </svg>
+          가로·세로 정가운데 맞춤
+        </button>
       </div>
+
+      <div class="field">
+        <div class="field-label">글자 크기 <span id="fsV">60</span></div>
         <input type="range" id="fsRange" min="10" max="250" value="60" oninput="document.getElementById('fsV').textContent=this.value;syncLayer()">
       </div>
+      
       <div class="field">
         <div class="field-label">자간(글자간격) <span id="lsV">0</span></div>
         <input type="range" id="lsRange" min="-10" max="50" value="0" oninput="document.getElementById('lsV').textContent=this.value;syncLayer()">
@@ -511,11 +521,9 @@ input[type=color]:hover { transform: scale(1.05); }
         </div>
         <div id="gradPanel" style="display:none">
           <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-            <!-- 방향 휠 -->
             <div style="position:relative;flex-shrink:0;">
               <canvas id="gradWheel" width="64" height="64" style="cursor:crosshair;border-radius:50%;border:1px solid var(--border);" title="드래그로 방향 조절"></canvas>
             </div>
-            <!-- 색상 + 프리뷰 -->
             <div style="flex:1;">
               <div class="grad-preview" id="gradPreview" style="margin-bottom:10px;"></div>
               <div style="display:flex;gap:8px;align-items:center;">
@@ -592,29 +600,28 @@ let txtStyleMode = 'normal';
 let gradOn = false;
 let gradDir = 0;
 let bgLocked = false;
-let txtAlign = 'center';
-let txtVAlign = 'middle';
 
 // ── Render ──
 function render() {
   const W = canvas.width, H = canvas.height;
   ctx.clearRect(0, 0, W, H);
   
-  // 캔버스 배경 (투명이면 흰색 기본)
-  ctx.fillStyle = (bgColor !== 'transparent') ? bgColor : '#ffffff';
-  ctx.fillRect(0, 0, W, H);
+  if (bgColor !== 'transparent') {
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, W, H);
+  } else {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, W, H);
+  }
   
-  // Background Image with Pan & Zoom
   if (bgImage) {
     ctx.save();
     ctx.drawImage(bgImage, bgPanX, bgPanY, bgImage.width * bgScale, bgImage.height * bgScale);
     ctx.restore();
   }
   
-  // Render Text Layers (Always on top)
   layers.forEach(l => drawLayer(l));
   
-  // Selection ring
   const sel = layers.find(l => l.id === selId);
   if (sel) drawSelRing(sel);
 }
@@ -634,12 +641,10 @@ function drawLayer(l, isExport = false, targetCtx = ctx) {
   targetCtx.textAlign = 'center';
   targetCtx.textBaseline = 'middle';
   
-  // 안전하게 letterSpacing 적용 (브라우저 지원 여부 확인)
   if ('letterSpacing' in targetCtx) {
     targetCtx.letterSpacing = l.letterSpacing + "px";
   }
 
-  // ── 네온/글로우 효과 (별도 경로)
   if (l.outlineStyle === 'glow') {
     targetCtx.shadowColor = l.strokeColor;
     for (let g = 3; g >= 0; g--) {
@@ -647,7 +652,6 @@ function drawLayer(l, isExport = false, targetCtx = ctx) {
       targetCtx.fillStyle = l.color;
       targetCtx.fillText(l.text, 0, 0);
     }
-    // 글로우 위에 선명한 글자 한 번 더
     targetCtx.shadowBlur = 0; targetCtx.shadowColor = 'transparent';
     targetCtx.fillStyle = l.color;
     targetCtx.fillText(l.text, 0, 0);
@@ -655,7 +659,6 @@ function drawLayer(l, isExport = false, targetCtx = ctx) {
     return;
   }
 
-  // ── 이중 외곽선 (그림자 없이 먼저)
   if (l.outlineStyle === 'double') {
     targetCtx.shadowBlur = 0; targetCtx.shadowColor = 'transparent';
     targetCtx.strokeStyle = l.color;
@@ -664,7 +667,6 @@ function drawLayer(l, isExport = false, targetCtx = ctx) {
     targetCtx.strokeText(l.text, 0, 0);
   }
   
-  // ── 기본 외곽선 (그림자 없이, double 포함)
   if (l.outlineStyle !== 'none' && l.strokeWidth > 0) {
     targetCtx.shadowBlur = 0; targetCtx.shadowColor = 'transparent';
     targetCtx.strokeStyle = l.strokeColor;
@@ -673,7 +675,6 @@ function drawLayer(l, isExport = false, targetCtx = ctx) {
     targetCtx.strokeText(l.text, 0, 0);
   }
   
-  // ── 그림자 설정 (fillText에만 적용)
   if (l.shadowBlur > 0 || l.shadowOffsetX !== 0 || l.shadowOffsetY !== 0) {
     targetCtx.shadowColor = l.shadowColor;
     targetCtx.shadowBlur = l.shadowBlur;
@@ -684,7 +685,6 @@ function drawLayer(l, isExport = false, targetCtx = ctx) {
     targetCtx.shadowOffsetX = 0; targetCtx.shadowOffsetY = 0;
   }
 
-  // ── 글자 채우기 (그라데이션 or 단색)
   if (l.useGrad && l.text.trim() !== '') {
     const m = targetCtx.measureText(l.text);
     const width = m.width || 100;
@@ -711,7 +711,6 @@ function getSelHandles(l) {
   ctx.restore();
   const hw = tw / 2 + 20;
   const hh = l.fontSize / 2 + 16;
-  // 핸들 위치 (레이어 로컬 좌표)
   return {
     hw, hh,
     corners: [
@@ -738,14 +737,12 @@ function drawSelRing(l) {
   ctx.translate(l.x, l.y);
   ctx.rotate(l.rotate * Math.PI / 180);
 
-  // 점선 박스
   ctx.strokeStyle = 'rgba(79,70,229,0.85)';
   ctx.lineWidth = 1.5;
   ctx.setLineDash([6, 4]);
   ctx.strokeRect(-hw, -hh, hw * 2, hh * 2);
   ctx.setLineDash([]);
 
-  // 회전 핸들 선
   ctx.beginPath();
   ctx.moveTo(0, -hh);
   ctx.lineTo(0, -hh - 28);
@@ -755,7 +752,6 @@ function drawSelRing(l) {
 
   ctx.restore();
 
-  // 모서리 핸들 (흰 사각형)
   for (const c of corners) {
     const { x, y } = localToWorld(l, c.lx, c.ly);
     ctx.save();
@@ -770,7 +766,6 @@ function drawSelRing(l) {
     ctx.restore();
   }
 
-  // 회전 핸들 (원형)
   const rp = localToWorld(l, rotHandle.lx, rotHandle.ly);
   ctx.beginPath();
   ctx.arc(rp.x, rp.y, 8, 0, Math.PI * 2);
@@ -779,7 +774,7 @@ function drawSelRing(l) {
   ctx.strokeStyle = '#fff';
   ctx.lineWidth = 2;
   ctx.stroke();
-  // 회전 아이콘 (화살표)
+  
   ctx.save();
   ctx.translate(rp.x, rp.y);
   ctx.strokeStyle = '#fff';
@@ -801,7 +796,6 @@ function newLayer(overrides={}) {
     shadowColor: '#000000', shadowBlur: 0, shadowOffsetX: 0, shadowOffsetY: 0,
     opacity: 1, rotate: 0,
     outlineStyle: 'line', style: 'normal',
-    align: 'center', valign: 'middle',
     useGrad: false, g1:'#4f46e5', g2:'#ec4899', gradDir: 0,
     ...overrides
   };
@@ -814,7 +808,6 @@ function addNewTextLayer(forceText = null) {
   const l = newLayer({
     text: inputText,
     font: document.getElementById('fontSel').value,
-    // 오류 방지를 위해 숫자가 아닐경우 기본값 적용되도록 처리
     fontSize: parseFloat(document.getElementById('fsRange').value) || 60,
     letterSpacing: parseFloat(document.getElementById('lsRange').value) || 0,
     color: document.getElementById('txtColor').value || '#111827',
@@ -824,8 +817,6 @@ function addNewTextLayer(forceText = null) {
     opacity: (parseFloat(document.getElementById('opRange').value) || 100) / 100,
     outlineStyle: outlineStyle,
     style: txtStyleMode,
-    align: txtAlign,
-    valign: txtVAlign,
     useGrad: gradOn,
   });
   
@@ -856,18 +847,13 @@ function sel(id) {
   outlineStyle = l.outlineStyle;
   document.querySelectorAll('.outline-opt').forEach(b=>{
     const map={'none':'없음','line':'기본선','double':'이중선','glow':'네온효과'};
-    b.classList.toggle('active', b.textContent.trim()===map[l.outlineStyle] || b.id === 'ts-'+l.style);
+    if(b.textContent) b.classList.toggle('active', b.textContent.trim()===map[l.outlineStyle] || b.id === 'ts-'+l.style);
   });
   
   txtStyleMode = l.style;
   document.querySelectorAll('#ts-normal,#ts-italic,#ts-bold').forEach(b=>b.classList.remove('active'));
   const tsEl = document.getElementById('ts-'+l.style);
   if (tsEl) tsEl.classList.add('active');
-
-  txtAlign = l.align || 'center';
-  txtVAlign = l.valign || 'middle';
-  ['left','center','right'].forEach(a => document.getElementById('align-'+a)?.classList.toggle('active', a === txtAlign));
-  ['top','middle','bottom'].forEach(a => document.getElementById('valign-'+a)?.classList.toggle('active', a === txtVAlign));
   
   gradOn = l.useGrad;
   const gt = document.getElementById('gradToggle');
@@ -889,7 +875,7 @@ function setSlider(rid,vid,v) {
 
 function syncLayer() {
   const l = layers.find(l=>l.id===selId);
-  if (!l) return; // 선택된 레이어가 없으면 무시
+  if (!l) return; 
   
   l.text = document.getElementById('txtInput').value;
   l.font = document.getElementById('fontSel').value;
@@ -910,8 +896,6 @@ function syncLayer() {
   l.opacity = (parseFloat(document.getElementById('opRange').value) || 100) / 100;
   l.outlineStyle = outlineStyle;
   l.style = txtStyleMode;
-  l.align = txtAlign;
-  l.valign = txtVAlign;
   l.useGrad = gradOn;
   l.g1 = document.getElementById('g1').value;
   l.g2 = document.getElementById('g2').value;
@@ -977,34 +961,41 @@ function setTxtStyle(s, btn) {
   syncLayer();
 }
 
-function setAlign(a) {
-  txtAlign = a;
-  ['left','center','right'].forEach(v => document.getElementById('align-'+v)?.classList.toggle('active', v === a));
+// 🌟 신규 기능: 레이어 캔버스 정렬 (버튼을 누르는 즉시 x, y 좌표가 맞춰집니다)
+function alignCanvas(type) {
   const l = layers.find(l => l.id === selId);
   if (!l) return;
-  // x 좌표를 캔버스 기준으로 snap
+
   const W = canvas.width;
+  const H = canvas.height;
+
+  // 글자 실제 너비 계산
+  ctx.save();
   ctx.font = makeFont(l);
   if ('letterSpacing' in ctx) ctx.letterSpacing = (l.letterSpacing||0)+'px';
   const tw = ctx.measureText(l.text).width;
-  if (a === 'left')   l.x = tw / 2 + 20;
-  if (a === 'center') l.x = W / 2;
-  if (a === 'right')  l.x = W - tw / 2 - 20;
-  l.align = a; txtAlign = a;
-  updateLayers(); render();
-}
+  ctx.restore();
 
-function setVAlign(a) {
-  txtVAlign = a;
-  ['top','middle','bottom'].forEach(v => document.getElementById('valign-'+v)?.classList.toggle('active', v === a));
-  const l = layers.find(l => l.id === selId);
-  if (!l) return;
-  const H = canvas.height;
-  if (a === 'top')    l.y = l.fontSize / 2 + 20;
-  if (a === 'middle') l.y = H / 2;
-  if (a === 'bottom') l.y = H - l.fontSize / 2 - 20;
-  l.valign = a; txtVAlign = a;
-  updateLayers(); render();
+  const pad = 20; // 캔버스 모서리 간격
+  const hw = tw / 2;
+  const hh = l.fontSize / 2;
+
+  // 위치 이동
+  switch(type) {
+    case 'left':   l.x = hw + pad; break;
+    case 'center': l.x = W / 2; break;
+    case 'right':  l.x = W - hw - pad; break;
+    case 'top':    l.y = hh + pad; break;
+    case 'middle': l.y = H / 2; break;
+    case 'bottom': l.y = H - hh - pad; break;
+    case 'center-all':
+      l.x = W / 2;
+      l.y = H / 2;
+      break;
+  }
+  
+  updateLayers();
+  render();
 }
 
 function toggleGrad() {
@@ -1018,7 +1009,7 @@ function toggleGrad() {
 function updateGradPreview() {
   const g1 = document.getElementById('g1').value;
   const g2 = document.getElementById('g2').value;
-  const cssDir = gradDir + 90; // CSS는 from top 기준
+  const cssDir = gradDir + 90; 
   document.getElementById('gradPreview').style.background = `linear-gradient(${cssDir}deg,${g1},${g2})`;
   drawGradWheel();
 }
@@ -1030,7 +1021,6 @@ function drawGradWheel() {
   const cx = 32, cy = 32, r = 28;
   wctx.clearRect(0, 0, 64, 64);
 
-  // 원형 배경
   wctx.beginPath();
   wctx.arc(cx, cy, r, 0, Math.PI * 2);
   const g1v = document.getElementById('g1').value;
@@ -1044,7 +1034,6 @@ function drawGradWheel() {
   wctx.fillStyle = grd;
   wctx.fill();
 
-  // 방향 화살표
   const ax = cx + Math.cos(rad) * (r - 6);
   const ay = cy + Math.sin(rad) * (r - 6);
   const bx = cx - Math.cos(rad) * (r - 6);
@@ -1055,7 +1044,7 @@ function drawGradWheel() {
   wctx.strokeStyle = 'rgba(255,255,255,0.9)';
   wctx.lineWidth = 2.5;
   wctx.stroke();
-  // 화살촉
+
   const headLen = 7;
   const angle = Math.atan2(ay - by, ax - bx);
   wctx.beginPath();
@@ -1068,7 +1057,6 @@ function drawGradWheel() {
   wctx.stroke();
 }
 
-// 그라데이션 휠 드래그 이벤트
 window.addEventListener('DOMContentLoaded', () => {
   const wc = document.getElementById('gradWheel');
   if (!wc) return;
@@ -1088,7 +1076,6 @@ window.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('touchend', () => { wheelDragging = false; });
 });
 
-// 이미지 고정 토글
 function toggleBgLock() {
   bgLocked = !bgLocked;
   const btn = document.getElementById('bgLockBtn');
@@ -1100,7 +1087,6 @@ function toggleBgLock() {
 
 function setColor(id, v) { document.getElementById(id).value = v; syncLayer(); }
 
-// ── Image Panning & Zooming ──
 function updateBgScale(val) {
   if (!bgImage) return;
   const newScale = baseScale * (val / 100);
@@ -1121,7 +1107,6 @@ function loadImage(e) {
     const img = new Image();
     img.onload = () => {
       bgImage = img;
-      // 캔버스 크기(600x600)에 꽉 차게 기본 비율 설정
       baseScale = Math.max(canvas.width / img.width, canvas.height / img.height);
       bgScale = baseScale;
       bgPanX = (canvas.width - img.width * bgScale) / 2;
@@ -1137,7 +1122,6 @@ function loadImage(e) {
   reader.readAsDataURL(file);
 }
 
-
 function setBg(c, el) {
   bgColor = c;
   document.querySelectorAll('.bg-swatch').forEach(s=>s.classList.remove('selected'));
@@ -1145,13 +1129,14 @@ function setBg(c, el) {
   render();
 }
 
-// ── Save & Clear ──
 function save(fmt) {
   const tmp = document.createElement('canvas');
   tmp.width = canvas.width; tmp.height = canvas.height;
   const tc = tmp.getContext('2d');
   
   if (bgColor !== 'transparent') { tc.fillStyle = bgColor; tc.fillRect(0,0,tmp.width,tmp.height); }
+  else { tc.fillStyle = '#ffffff'; tc.fillRect(0,0,tmp.width,tmp.height); } // 기본은 흰색
+  
   if (bgImage) {
      tc.drawImage(bgImage, bgPanX, bgPanY, bgImage.width * bgScale, bgImage.height * bgScale);
   }
@@ -1178,7 +1163,6 @@ function clearAll() {
   document.getElementById('txtInput').value = '';
   setBg('transparent', document.querySelector('.bg-swatch'));
   
-  // 초기화 시 기본 텍스트 레이어 1개 생성
   addNewTextLayer('기본 텍스트');
 }
 
@@ -1209,17 +1193,14 @@ function hitTest(x,y) {
   return null;
 }
 
-// ── 핸들 히트테스트 ──
 function hitHandle(x, y) {
   const l = layers.find(l => l.id === selId);
   if (!l) return null;
   const { corners, rotate: rotHandle } = getSelHandles(l);
 
-  // 회전 핸들
   const rp = localToWorld(l, rotHandle.lx, rotHandle.ly);
   if (Math.hypot(x - rp.x, y - rp.y) < 12) return 'rot';
 
-  // 모서리 핸들
   for (const c of corners) {
     const { x: cx, y: cy } = localToWorld(l, c.lx, c.ly);
     if (Math.hypot(x - cx, y - cy) < 10) return c.id;
@@ -1230,7 +1211,6 @@ function hitHandle(x, y) {
 canvas.addEventListener('mousedown', e => {
   const { x, y } = getCoords(e);
 
-  // 우클릭: 선택된 레이어 회전
   if (e.button === 2) {
     const l = layers.find(l => l.id === selId) || hitTest(x, y);
     if (l) {
@@ -1243,7 +1223,6 @@ canvas.addEventListener('mousedown', e => {
     return;
   }
 
-  // 선택된 레이어 핸들 먼저 체크
   const handle = hitHandle(x, y);
   if (handle) {
     const l = layers.find(l => l.id === selId);
@@ -1263,7 +1242,6 @@ canvas.addEventListener('mousedown', e => {
 
   const l = hitTest(x, y);
   if (l) {
-    // Shift + 드래그 = 크기 조절
     if (e.shiftKey) {
       sel(l.id);
       resizing = true;
@@ -1283,7 +1261,6 @@ canvas.addEventListener('mousedown', e => {
   }
 });
 
-// 우클릭 메뉴 방지
 canvas.addEventListener('contextmenu', e => e.preventDefault());
 
 canvas.addEventListener('mousemove', e => {
@@ -1326,7 +1303,6 @@ canvas.addEventListener('mousemove', e => {
     return;
   }
 
-  // 커서 모양
   const handle = hitHandle(x, y);
   if (handle === 'rot') canvas.style.cursor = 'crosshair';
   else if (handle) canvas.style.cursor = 'nwse-resize';
@@ -1341,13 +1317,11 @@ canvas.addEventListener('mouseleave', () => {
   dragging = false; draggingBg = false; resizing = false; rotating = false;
 });
 
-// 더블클릭 → 텍스트 바로 편집 (텍스트 탭 포커스)
 canvas.addEventListener('dblclick', e => {
   const { x, y } = getCoords(e);
   const l = hitTest(x, y);
   if (l) {
     sel(l.id);
-    // 텍스트 탭으로 전환 후 입력창 포커스
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
     document.getElementById('tab-text').style.display = 'block';
@@ -1360,7 +1334,6 @@ canvas.addEventListener('dblclick', e => {
   }
 });
 
-// Touch support
 canvas.addEventListener('touchstart', e => {
   e.preventDefault();
   const { x, y } = getCoords(e);
@@ -1414,7 +1387,6 @@ canvas.addEventListener('touchmove', e => {
 
 canvas.addEventListener('touchend', () => { dragging = false; draggingBg = false; resizing = false; rotating = false; });
 
-// Drag & Drop Image
 const uz = document.getElementById('uploadZone');
 uz.addEventListener('dragover',e=>{e.preventDefault();uz.style.borderColor='var(--accent)';});
 uz.addEventListener('dragleave',()=>{uz.style.borderColor='';});
@@ -1428,7 +1400,6 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Delete'&&selId&&document.activeElement.tagName!=='INPUT') delLayer(selId);
 });
 
-// 시작 시 기본 텍스트 레이어 생성 (폰트 로드 후 렌더)
 window.onload = async () => {
   const l = newLayer({ text: '텍스트 입력' });
   layers.push(l);
@@ -1438,8 +1409,6 @@ window.onload = async () => {
   updateLayers();
   drawGradWheel();
 
-  // Canvas는 document.fonts에 없는 폰트를 무시하므로 명시적으로 로드
-  // bold/italic 포함 모든 조합을 미리 로드해두면 이후 변경 시 렉 없음
   const fontFamilies = [
     "'Noto Sans KR'", "'Jua'", "'Do Hyeon'", "'Gugi'",
     "'Hi Melody'", "'Nanum Pen Script'", "'East Sea Dokdo'",
