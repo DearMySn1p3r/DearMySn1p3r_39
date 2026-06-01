@@ -330,6 +330,11 @@ input[type=color]:hover { transform: scale(1.05); }
       <div class="field-label">배경 크기 (마우스로 캔버스 이동 가능) <span id="bgScaleV">100</span>%</div>
       <input type="range" id="bgScaleRange" min="10" max="300" value="100" oninput="updateBgScale(this.value)">
     </div>
+    <div style="margin-top:12px;">
+      <button class="btn btn-surface btn-full" id="bgLockBtn" onclick="toggleBgLock()" style="gap:8px;">
+        🔓 이미지 고정 해제됨
+      </button>
+    </div>
   </div>
 
   <div class="section">
@@ -364,6 +369,9 @@ input[type=color]:hover { transform: scale(1.05); }
       <div class="canvas-guide-icon">📝</div>
       <div class="canvas-guide-text">우측 패널에서<br>텍스트 칸에 내용을 적고<br><b>[+ 추가]</b>를 눌러보세요</div>
     </div>
+  </div>
+  <div style="font-size:11px;color:var(--text3);text-align:center;letter-spacing:0.2px;">
+    드래그: 이동 &nbsp;|&nbsp; <b>Shift</b>+드래그: 크기 &nbsp;|&nbsp; 우클릭+드래그: 회전 &nbsp;|&nbsp; 더블클릭: 텍스트 편집
   </div>
 </div>
 
@@ -479,11 +487,20 @@ input[type=color]:hover { transform: scale(1.05); }
           <div class="toggle" id="gradToggle" onclick="toggleGrad()"></div>
         </div>
         <div id="gradPanel" style="display:none">
-          <div class="grad-preview" id="gradPreview"></div>
-          <div class="color-row">
-            <input type="color" id="g1" value="#4f46e5" onchange="updateGradPreview();syncLayer()">
-            <input type="color" id="g2" value="#ec4899" onchange="updateGradPreview();syncLayer()">
-            <input type="color" id="g3" value="#f59e0b" onchange="updateGradPreview();syncLayer()">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+            <!-- 방향 휠 -->
+            <div style="position:relative;flex-shrink:0;">
+              <canvas id="gradWheel" width="64" height="64" style="cursor:crosshair;border-radius:50%;border:1px solid var(--border);" title="드래그로 방향 조절"></canvas>
+            </div>
+            <!-- 색상 + 프리뷰 -->
+            <div style="flex:1;">
+              <div class="grad-preview" id="gradPreview" style="margin-bottom:10px;"></div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input type="color" id="g1" value="#4f46e5" onchange="updateGradPreview();syncLayer()">
+                <span style="color:var(--text3);font-size:18px;">→</span>
+                <input type="color" id="g2" value="#ec4899" onchange="updateGradPreview();syncLayer()">
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -550,6 +567,8 @@ let rotating = false, rotateStartAngle = 0, rotateStartRot = 0;
 let outlineStyle = 'line';
 let txtStyleMode = 'normal';
 let gradOn = false;
+let gradDir = 0; // degrees
+let bgLocked = false;
 
 // ── Render ──
 function render() {
@@ -644,11 +663,16 @@ function drawLayer(l, isExport = false, targetCtx = ctx) {
   if (l.useGrad && l.text.trim() !== '') {
     const m = targetCtx.measureText(l.text);
     const width = m.width || 100;
-    const grd = targetCtx.createLinearGradient(-width/2, 0, width/2, 0);
-    grd.addColorStop(0, l.g1); grd.addColorStop(0.5, l.g2); grd.addColorStop(1, l.g3);
+    const height = l.fontSize;
+    const rad = ((l.gradDir || 0) * Math.PI) / 180;
+    const cos = Math.cos(rad), sin = Math.sin(rad);
+    const r = (Math.abs(cos) * width + Math.abs(sin) * height) / 2;
+    const grd = targetCtx.createLinearGradient(-cos * r, -sin * r, cos * r, sin * r);
+    grd.addColorStop(0, l.g1);
+    grd.addColorStop(1, l.g2);
     targetCtx.fillStyle = grd;
-  } else { 
-    targetCtx.fillStyle = l.color; 
+  } else {
+    targetCtx.fillStyle = l.color;
   }
   targetCtx.fillText(l.text, 0, 0);
   targetCtx.restore();
@@ -752,7 +776,7 @@ function newLayer(overrides={}) {
     shadowColor: '#000000', shadowBlur: 0, shadowOffsetX: 0, shadowOffsetY: 0,
     opacity: 1, rotate: 0,
     outlineStyle: 'line', style: 'normal',
-    useGrad: false, g1:'#4f46e5', g2:'#ec4899', g3:'#f59e0b',
+    useGrad: false, g1:'#4f46e5', g2:'#ec4899', gradDir: 0,
     ...overrides
   };
 }
@@ -818,8 +842,9 @@ function sel(id) {
   document.getElementById('gradPanel').style.display = gradOn?'block':'none';
   if(l.g1) document.getElementById('g1').value = l.g1;
   if(l.g2) document.getElementById('g2').value = l.g2;
-  if(l.g3) document.getElementById('g3').value = l.g3;
+  gradDir = l.gradDir || 0;
   updateGradPreview();
+  drawGradWheel();
   
   updateLayers(); render();
 }
@@ -855,7 +880,7 @@ function syncLayer() {
   l.useGrad = gradOn;
   l.g1 = document.getElementById('g1').value;
   l.g2 = document.getElementById('g2').value;
-  l.g3 = document.getElementById('g3').value;
+  l.gradDir = gradDir;
   updateLayers(); render();
 }
 
@@ -926,10 +951,87 @@ function toggleGrad() {
 }
 
 function updateGradPreview() {
-  const g1=document.getElementById('g1').value, g2=document.getElementById('g2').value, g3=document.getElementById('g3').value;
-  document.getElementById('gradPreview').style.background=`linear-gradient(90deg,${g1},${g2},${g3})`;
+  const g1 = document.getElementById('g1').value;
+  const g2 = document.getElementById('g2').value;
+  const cssDir = gradDir + 90; // CSS는 from top 기준
+  document.getElementById('gradPreview').style.background = `linear-gradient(${cssDir}deg,${g1},${g2})`;
+  drawGradWheel();
 }
-updateGradPreview();
+
+function drawGradWheel() {
+  const wc = document.getElementById('gradWheel');
+  if (!wc) return;
+  const wctx = wc.getContext('2d');
+  const cx = 32, cy = 32, r = 28;
+  wctx.clearRect(0, 0, 64, 64);
+
+  // 원형 배경
+  wctx.beginPath();
+  wctx.arc(cx, cy, r, 0, Math.PI * 2);
+  const g1v = document.getElementById('g1').value;
+  const g2v = document.getElementById('g2').value;
+  const rad = (gradDir * Math.PI) / 180;
+  const grd = wctx.createLinearGradient(
+    cx - Math.cos(rad)*r, cy - Math.sin(rad)*r,
+    cx + Math.cos(rad)*r, cy + Math.sin(rad)*r
+  );
+  grd.addColorStop(0, g1v); grd.addColorStop(1, g2v);
+  wctx.fillStyle = grd;
+  wctx.fill();
+
+  // 방향 화살표
+  const ax = cx + Math.cos(rad) * (r - 6);
+  const ay = cy + Math.sin(rad) * (r - 6);
+  const bx = cx - Math.cos(rad) * (r - 6);
+  const by = cy - Math.sin(rad) * (r - 6);
+  wctx.beginPath();
+  wctx.moveTo(bx, by);
+  wctx.lineTo(ax, ay);
+  wctx.strokeStyle = 'rgba(255,255,255,0.9)';
+  wctx.lineWidth = 2.5;
+  wctx.stroke();
+  // 화살촉
+  const headLen = 7;
+  const angle = Math.atan2(ay - by, ax - bx);
+  wctx.beginPath();
+  wctx.moveTo(ax, ay);
+  wctx.lineTo(ax - headLen * Math.cos(angle - 0.4), ay - headLen * Math.sin(angle - 0.4));
+  wctx.moveTo(ax, ay);
+  wctx.lineTo(ax - headLen * Math.cos(angle + 0.4), ay - headLen * Math.sin(angle + 0.4));
+  wctx.strokeStyle = 'rgba(255,255,255,0.9)';
+  wctx.lineWidth = 2;
+  wctx.stroke();
+}
+
+// 그라데이션 휠 드래그 이벤트
+window.addEventListener('DOMContentLoaded', () => {
+  const wc = document.getElementById('gradWheel');
+  if (!wc) return;
+  let wheelDragging = false;
+  const getWheelAngle = (e) => {
+    const rect = wc.getBoundingClientRect();
+    const t = e.touches ? e.touches[0] : e;
+    const dx = t.clientX - rect.left - 32;
+    const dy = t.clientY - rect.top - 32;
+    return Math.round(Math.atan2(dy, dx) * 180 / Math.PI);
+  };
+  wc.addEventListener('mousedown', e => { wheelDragging = true; gradDir = getWheelAngle(e); updateGradPreview(); syncLayer(); });
+  window.addEventListener('mousemove', e => { if (!wheelDragging) return; gradDir = getWheelAngle(e); updateGradPreview(); syncLayer(); });
+  window.addEventListener('mouseup', () => { wheelDragging = false; });
+  wc.addEventListener('touchstart', e => { e.preventDefault(); wheelDragging = true; gradDir = getWheelAngle(e); updateGradPreview(); syncLayer(); }, {passive:false});
+  window.addEventListener('touchmove', e => { if (!wheelDragging) return; gradDir = getWheelAngle(e); updateGradPreview(); syncLayer(); });
+  window.addEventListener('touchend', () => { wheelDragging = false; });
+});
+
+// 이미지 고정 토글
+function toggleBgLock() {
+  bgLocked = !bgLocked;
+  const btn = document.getElementById('bgLockBtn');
+  btn.textContent = bgLocked ? '🔒 이미지 고정됨' : '🔓 이미지 고정 해제됨';
+  btn.style.background = bgLocked ? 'var(--accent-dim)' : '';
+  btn.style.borderColor = bgLocked ? 'var(--accent)' : '';
+  btn.style.color = bgLocked ? 'var(--accent)' : '';
+}
 
 function setColor(id, v) { document.getElementById(id).value = v; syncLayer(); }
 
@@ -1001,6 +1103,10 @@ function clearAll() {
   if (!confirm('모든 작업을 초기화할까요?')) return;
   layers=[]; bgImage=null; selId=null;
   bgScale = 1; bgPanX = 0; bgPanY = 0; baseScale = 1;
+  bgLocked = false;
+  const lb = document.getElementById('bgLockBtn');
+  lb.textContent = '🔓 이미지 고정 해제됨';
+  lb.style.background = lb.style.borderColor = lb.style.color = '';
   document.getElementById('guide').classList.remove('hidden');
   document.getElementById('bgScaleRange').value = 100;
   document.getElementById('bgScaleV').textContent = 100;
@@ -1059,6 +1165,19 @@ function hitHandle(x, y) {
 canvas.addEventListener('mousedown', e => {
   const { x, y } = getCoords(e);
 
+  // 우클릭: 선택된 레이어 회전
+  if (e.button === 2) {
+    const l = layers.find(l => l.id === selId) || hitTest(x, y);
+    if (l) {
+      if (l.id !== selId) sel(l.id);
+      rotating = true;
+      rotateStartAngle = Math.atan2(y - l.y, x - l.x);
+      rotateStartRot = l.rotate;
+      canvas.style.cursor = 'crosshair';
+    }
+    return;
+  }
+
   // 선택된 레이어 핸들 먼저 체크
   const handle = hitHandle(x, y);
   if (handle) {
@@ -1079,9 +1198,18 @@ canvas.addEventListener('mousedown', e => {
 
   const l = hitTest(x, y);
   if (l) {
-    dragging = true; sel(l.id); dox = x - l.x; doy = y - l.y;
-    canvas.style.cursor = 'grabbing';
-  } else if (bgImage) {
+    // Shift + 드래그 = 크기 조절
+    if (e.shiftKey) {
+      sel(l.id);
+      resizing = true;
+      resizeStartX = x; resizeStartY = y;
+      resizeStartFontSize = l.fontSize;
+      canvas.style.cursor = 'nwse-resize';
+    } else {
+      dragging = true; sel(l.id); dox = x - l.x; doy = y - l.y;
+      canvas.style.cursor = 'grabbing';
+    }
+  } else if (bgImage && !bgLocked) {
     draggingBg = true; bgDox = x - bgPanX; bgDoy = y - bgPanY;
     selId = null; updateLayers(); render();
     canvas.style.cursor = 'grabbing';
@@ -1089,6 +1217,9 @@ canvas.addEventListener('mousedown', e => {
     selId = null; updateLayers(); render();
   }
 });
+
+// 우클릭 메뉴 방지
+canvas.addEventListener('contextmenu', e => e.preventDefault());
 
 canvas.addEventListener('mousemove', e => {
   const { x, y } = getCoords(e);
@@ -1134,7 +1265,7 @@ canvas.addEventListener('mousemove', e => {
   const handle = hitHandle(x, y);
   if (handle === 'rot') canvas.style.cursor = 'crosshair';
   else if (handle) canvas.style.cursor = 'nwse-resize';
-  else canvas.style.cursor = hitTest(x, y) ? 'grab' : (bgImage ? 'move' : 'default');
+  else canvas.style.cursor = hitTest(x, y) ? 'grab' : (bgImage && !bgLocked ? 'move' : 'default');
 });
 
 canvas.addEventListener('mouseup', () => {
@@ -1184,7 +1315,7 @@ canvas.addEventListener('touchstart', e => {
   }
   const l = hitTest(x, y);
   if (l) { dragging = true; sel(l.id); dox = x - l.x; doy = y - l.y; }
-  else if (bgImage) { draggingBg = true; bgDox = x - bgPanX; bgDoy = y - bgPanY; selId = null; updateLayers(); render(); }
+  else if (bgImage && !bgLocked) { draggingBg = true; bgDox = x - bgPanX; bgDoy = y - bgPanY; selId = null; updateLayers(); render(); }
 }, { passive: false });
 
 canvas.addEventListener('touchmove', e => {
@@ -1240,6 +1371,7 @@ window.onload = async () => {
   document.getElementById('txtInput').value = l.text;
   document.getElementById('guide').classList.add('hidden');
   updateLayers();
+  drawGradWheel();
 
   // Canvas는 document.fonts에 없는 폰트를 무시하므로 명시적으로 로드
   // bold/italic 포함 모든 조합을 미리 로드해두면 이후 변경 시 렉 없음
