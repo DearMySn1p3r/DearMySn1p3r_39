@@ -674,20 +674,7 @@ function drawLayer(l, isExport = false, targetCtx = ctx) {
     targetCtx.letterSpacing = l.letterSpacing + "px";
   }
 
-  if (l.outlineStyle === 'glow') {
-    targetCtx.shadowColor = l.strokeColor;
-    for (let g = 3; g >= 0; g--) {
-      targetCtx.shadowBlur = 8 + g * 10;
-      targetCtx.fillStyle = l.color;
-      targetCtx.fillText(l.text, 0, 0);
-    }
-    targetCtx.shadowBlur = 0; targetCtx.shadowColor = 'transparent';
-    targetCtx.fillStyle = l.color;
-    targetCtx.fillText(l.text, 0, 0);
-    targetCtx.restore();
-    return;
-  }
-
+  // ── 외곽선/이중선 처리 (fill 이전) ──
   if (l.outlineStyle === 'double') {
     targetCtx.shadowBlur = 0; targetCtx.shadowColor = 'transparent';
     targetCtx.strokeStyle = l.color;
@@ -695,15 +682,16 @@ function drawLayer(l, isExport = false, targetCtx = ctx) {
     targetCtx.lineJoin = 'round';
     targetCtx.strokeText(l.text, 0, 0);
   }
-  
-  if (l.outlineStyle !== 'none' && l.strokeWidth > 0) {
+
+  if (l.outlineStyle !== 'none' && l.outlineStyle !== 'glow' && l.strokeWidth > 0) {
     targetCtx.shadowBlur = 0; targetCtx.shadowColor = 'transparent';
     targetCtx.strokeStyle = l.strokeColor;
     targetCtx.lineWidth = l.strokeWidth;
     targetCtx.lineJoin = 'round';
     targetCtx.strokeText(l.text, 0, 0);
   }
-  
+
+  // ── 그림자 설정 (fill 이전) ──
   if (l.shadowBlur > 0 || l.shadowOffsetX !== 0 || l.shadowOffsetY !== 0) {
     targetCtx.shadowColor = l.shadowColor;
     targetCtx.shadowBlur = l.shadowBlur;
@@ -714,6 +702,8 @@ function drawLayer(l, isExport = false, targetCtx = ctx) {
     targetCtx.shadowOffsetX = 0; targetCtx.shadowOffsetY = 0;
   }
 
+  // ── 채우기 색상(단색 or 그라데이션) 결정 ──
+  let fillStyle;
   if (l.useGrad && l.text.trim() !== '') {
     const m = targetCtx.measureText(l.text);
     const width = m.width || 100;
@@ -724,10 +714,37 @@ function drawLayer(l, isExport = false, targetCtx = ctx) {
     const grd = targetCtx.createLinearGradient(-cos * r, -sin * r, cos * r, sin * r);
     grd.addColorStop(0, l.g1);
     grd.addColorStop(1, l.g2);
-    targetCtx.fillStyle = grd;
+    fillStyle = grd;
   } else {
-    targetCtx.fillStyle = l.color;
+    fillStyle = l.color;
   }
+
+  // ── 네온(glow) 효과: 그림자/그라데이션과 함께 동작 ──
+  if (l.outlineStyle === 'glow') {
+    // 글로우 레이어들 (그림자 위에 겹쳐 그림)
+    const savedShadow = {
+      color: targetCtx.shadowColor,
+      blur: targetCtx.shadowBlur,
+      offX: targetCtx.shadowOffsetX,
+      offY: targetCtx.shadowOffsetY,
+    };
+    for (let g = 3; g >= 0; g--) {
+      targetCtx.shadowColor = l.strokeColor;
+      targetCtx.shadowBlur = 8 + g * 10;
+      targetCtx.shadowOffsetX = 0;
+      targetCtx.shadowOffsetY = 0;
+      targetCtx.fillStyle = fillStyle;
+      targetCtx.fillText(l.text, 0, 0);
+    }
+    // 그림자 복원 후 최종 fill
+    targetCtx.shadowColor = savedShadow.color;
+    targetCtx.shadowBlur = savedShadow.blur;
+    targetCtx.shadowOffsetX = savedShadow.offX;
+    targetCtx.shadowOffsetY = savedShadow.offY;
+  }
+
+  // ── 최종 텍스트 fill ──
+  targetCtx.fillStyle = fillStyle;
   targetCtx.fillText(l.text, 0, 0);
   targetCtx.restore();
 }
@@ -847,6 +864,9 @@ function addNewTextLayer(forceText = null) {
     outlineStyle: outlineStyle,
     style: txtStyleMode,
     useGrad: gradOn,
+    g1: document.getElementById('g1').value,
+    g2: document.getElementById('g2').value,
+    gradDir: gradDir,
   });
   
   layers.push(l);
@@ -859,6 +879,7 @@ function sel(id) {
   const l = layers.find(l=>l.id===id);
   if (!l) return;
   document.getElementById('txtInput').value = l.text;
+  document.getElementById('fontSel').value = l.font;
   setSlider('fsRange','fsV',l.fontSize);
   setSlider('lsRange','lsV',l.letterSpacing || 0);
   setSlider('rotRange','rotV',l.rotate);
@@ -874,9 +895,11 @@ function sel(id) {
   setSlider('opRange','opV',Math.round(l.opacity*100));
   
   outlineStyle = l.outlineStyle;
-  document.querySelectorAll('.outline-opt').forEach(b=>{
-    const map={'none':'없음','line':'기본선','double':'이중선','glow':'네온효과'};
-    if(b.textContent) b.classList.toggle('active', b.textContent.trim()===map[l.outlineStyle] || b.id === 'ts-'+l.style);
+  // 외곽선 버튼 active 복원 (폰트 스타일 버튼과 분리)
+  const outlineMap = {'none':'없음','line':'기본선','double':'이중선','glow':'네온효과'};
+  document.querySelectorAll('.outline-picker .outline-opt').forEach(b=>{
+    if (b.id && b.id.startsWith('ts-')) return; // 폰트 스타일 버튼 제외
+    b.classList.toggle('active', b.textContent.trim() === outlineMap[l.outlineStyle]);
   });
   
   txtStyleMode = l.style;
@@ -980,7 +1003,8 @@ function switchTab(tab, btn) {
 
 function setOutline(type, btn) {
   outlineStyle = type;
-  document.querySelectorAll('.outline-opt').forEach(b=>b.classList.remove('active'));
+  // 외곽선 버튼만 active 초기화 (폰트 스타일 버튼 #ts-* 는 건드리지 않음)
+  btn.closest('.outline-picker').querySelectorAll('.outline-opt').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   syncLayer();
 }
