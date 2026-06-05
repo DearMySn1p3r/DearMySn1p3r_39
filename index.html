@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Emoticon Stamp Maker</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=DM+Mono:wght@400;500&family=Jua&family=Do+Hyeon&family=Gugi&family=Gaegu&family=Nanum+Brush+Script&family=Nanum+Pen+Script&family=Hi+Melody&family=East+Sea+Dokdo&family=Sunflower:wght@700&family=Bubblegum+Sans&family=Fredoka+One&family=Pacifico&family=Boogaloo&family=Lilita+One&family=Righteous&family=Comfortaa:wght@700&display=swap" rel="stylesheet">
 
@@ -108,10 +108,21 @@ header {
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow-lg);
-  background: #fff;
+  /* 투명 배경이 보이도록 체커보드 패턴 표시 */
+  background-color: #fff;
+  background-image:
+    linear-gradient(45deg, #e9ebef 25%, transparent 25%),
+    linear-gradient(-45deg, #e9ebef 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #e9ebef 75%),
+    linear-gradient(-45deg, transparent 75%, #e9ebef 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0;
   border: 1px solid var(--border);
+  /* 항상 정사각형 비율 유지 → 화면이 줄어도 글씨가 찌그러지지 않음 */
+  aspect-ratio: 1 / 1;
+  width: min(520px, 100%, calc(100vh - 150px));
 }
-#mainCanvas { display: block; width: 520px; height: 520px; max-width: 100%; max-height: 100%; }
+#mainCanvas { display: block; width: 100%; height: 100%; }
 
 /* ── Right panel ── */
 .right-panel {
@@ -259,6 +270,7 @@ input[type=color]:hover { transform: scale(1.05); }
 .bg-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
 .bg-swatch { width: 100%; aspect-ratio: 1; border-radius: 8px; cursor: pointer; border: 1px solid var(--border); transition: transform 0.1s; }
 .bg-swatch:hover { transform: scale(1.05); }
+.bg-swatch.selected { box-shadow: 0 0 0 2px var(--accent); }
 
 /* ── Misc ── */
 .empty-state { text-align: center; padding: 32px 16px; color: var(--text3); font-size: 13px; }
@@ -267,6 +279,7 @@ input[type=color]:hover { transform: scale(1.05); }
 .canvas-guide.hidden { display: none; }
 .canvas-guide-icon { font-size: 32px; color: var(--border2); }
 .canvas-guide-text { font-size: 13px; color: var(--text2); text-align: center; font-weight: 500;}
+.canvas-caption-mobile { display: none; }
 
 /* ── Toggle ── */
 .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
@@ -314,6 +327,48 @@ input[type=color]:hover { transform: scale(1.05); }
   visibility: hidden;
   pointer-events: none;
   z-index: -999;
+}
+
+/* ── 모바일 / 반응형 레이아웃 ── */
+@media (max-width: 860px) {
+  html, body { height: auto; overflow-x: hidden; overflow-y: auto; }
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 100dvh;
+  }
+  header {
+    height: 56px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    padding: 0 16px;
+  }
+  .header-meta { display: none; }
+  .canvas-area {
+    order: 1;
+    padding: 16px 12px;
+    flex-shrink: 0;
+    overflow: visible;
+  }
+  .canvas-bg-pattern { display: none; }
+  .canvas-wrap { width: min(86vw, 56vh); }
+  .left-panel, .right-panel {
+    width: 100%;
+    border: none;
+    border-top: 1px solid var(--border);
+    overflow: visible;
+  }
+  .right-panel { order: 2; }   /* 텍스트/스타일/레이어 편집을 먼저 노출 */
+  .left-panel  { order: 3; }   /* 배경·저장은 그 아래로 */
+  .right-panel .tab-bar { position: sticky; top: 56px; z-index: 9; }
+  .canvas-caption-desktop { display: none; }
+  .canvas-caption-mobile { display: block; }
+}
+@media (max-width: 420px) {
+  .canvas-wrap { width: min(90vw, 50vh); }
+  .section { padding: 16px; }
 }
 </style>
 </head>
@@ -397,8 +452,11 @@ input[type=color]:hover { transform: scale(1.05); }
       <div class="canvas-guide-text">우측 패널에서<br>텍스트 칸에 내용을 적고<br><b>[+ 추가]</b>를 눌러보세요</div>
     </div>
   </div>
-  <div style="font-size:11px;color:var(--text3);text-align:center;letter-spacing:0.2px;">
+  <div class="canvas-caption-desktop" style="font-size:11px;color:var(--text3);text-align:center;letter-spacing:0.2px;">
     드래그: 이동 &nbsp;|&nbsp; <b>Shift</b>+드래그: 크기 &nbsp;|&nbsp; 우클릭+드래그: 회전 &nbsp;|&nbsp; 더블클릭: 텍스트 편집
+  </div>
+  <div class="canvas-caption-mobile" style="font-size:11px;color:var(--text3);text-align:center;letter-spacing:0.2px;">
+    탭하여 선택 · 드래그로 이동 · 모서리 손잡이로 크기 / 회전 · 더블탭으로 편집
   </div>
 </div>
 
@@ -472,7 +530,7 @@ input[type=color]:hover { transform: scale(1.05); }
 
       <div class="field">
         <div class="field-label">글자 크기 <span id="fsV">60</span></div>
-        <input type="range" id="fsRange" min="10" max="250" value="60" oninput="document.getElementById('fsV').textContent=this.value;syncLayer()">
+        <input type="range" id="fsRange" min="10" max="400" value="60" oninput="document.getElementById('fsV').textContent=this.value;syncLayer()">
       </div>
       
       <div class="field">
@@ -631,12 +689,10 @@ let bgLocked = false;
 function render() {
   const W = canvas.width, H = canvas.height;
   ctx.clearRect(0, 0, W, H);
-  
+
+  // 'transparent'이면 칠하지 않아 캔버스가 비치고(체커보드), 저장 시 투명 PNG가 됩니다.
   if (bgColor !== 'transparent') {
     ctx.fillStyle = bgColor;
-    ctx.fillRect(0, 0, W, H);
-  } else {
-    ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, W, H);
   }
   
@@ -1186,8 +1242,8 @@ function save(fmt) {
   tmp.width = canvas.width; tmp.height = canvas.height;
   const tc = tmp.getContext('2d');
   
+  // 'transparent'면 배경을 칠하지 않아 투명 배경 PNG로 저장됩니다.
   if (bgColor !== 'transparent') { tc.fillStyle = bgColor; tc.fillRect(0,0,tmp.width,tmp.height); }
-  else { tc.fillStyle = '#ffffff'; tc.fillRect(0,0,tmp.width,tmp.height); } 
   
   if (bgImage) {
      tc.drawImage(bgImage, bgPanX, bgPanY, bgImage.width * bgScale, bgImage.height * bgScale);
@@ -1222,7 +1278,7 @@ function clearAll() {
 function getCoords(e) {
   const r = canvas.getBoundingClientRect();
   const sx = canvas.width/r.width, sy = canvas.height/r.height;
-  const t = e.touches ? e.touches[0] : e;
+  const t = e.touches && e.touches[0] ? e.touches[0] : (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0] : e);
   return { x:(t.clientX-r.left)*sx, y:(t.clientY-r.top)*sy };
 }
 
@@ -1251,11 +1307,11 @@ function hitHandle(x, y) {
   const { corners, rotate: rotHandle } = getSelHandles(l);
 
   const rp = localToWorld(l, rotHandle.lx, rotHandle.ly);
-  if (Math.hypot(x - rp.x, y - rp.y) < 12) return 'rot';
+  if (Math.hypot(x - rp.x, y - rp.y) < 16) return 'rot';
 
   for (const c of corners) {
     const { x: cx, y: cy } = localToWorld(l, c.lx, c.ly);
-    if (Math.hypot(x - cx, y - cy) < 10) return c.id;
+    if (Math.hypot(x - cx, y - cy) < 14) return c.id;
   }
   return null;
 }
@@ -1406,6 +1462,7 @@ canvas.addEventListener('touchstart', e => {
   const l = hitTest(x, y);
   if (l) { dragging = true; sel(l.id); dox = x - l.x; doy = y - l.y; }
   else if (bgImage && !bgLocked) { draggingBg = true; bgDox = x - bgPanX; bgDoy = y - bgPanY; selId = null; updateLayers(); render(); }
+  else { selId = null; updateLayers(); render(); }
 }, { passive: false });
 
 canvas.addEventListener('touchmove', e => {
@@ -1437,7 +1494,26 @@ canvas.addEventListener('touchmove', e => {
   }
 }, { passive: false });
 
-canvas.addEventListener('touchend', () => { dragging = false; draggingBg = false; resizing = false; rotating = false; });
+// 모바일: 더블탭으로 텍스트 편집
+let lastTapTime = 0;
+canvas.addEventListener('touchend', e => {
+  const now = Date.now();
+  if (now - lastTapTime < 300 && !dragging && !resizing && !rotating) {
+    const { x, y } = getCoords(e);
+    const l = hitTest(x, y);
+    if (l) {
+      sel(l.id);
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+      document.getElementById('tab-text').style.display = 'block';
+      document.querySelector('.tab-btn').classList.add('active');
+      const inp = document.getElementById('txtInput');
+      inp.focus();
+    }
+  }
+  lastTapTime = now;
+  dragging = false; draggingBg = false; resizing = false; rotating = false;
+});
 
 const uz = document.getElementById('uploadZone');
 uz.addEventListener('dragover',e=>{e.preventDefault();uz.style.borderColor='var(--accent)';});
