@@ -64,6 +64,8 @@ header{grid-column:1/-1;display:flex;align-items:center;gap:6px;padding:0 12px 0
 .card:last-child{border-bottom:none}
 .card-hd{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;color:var(--text2);margin-bottom:12px}
 .card-ic,.badge{display:none}
+.hd-act{margin-left:auto;border:none;background:none;font-size:11px;font-weight:500;color:var(--text3);cursor:pointer;padding:2px 6px;margin-right:-6px;border-radius:5px;transition:.15s}
+.hd-act:hover{color:var(--text);background:var(--surface3)}
 .sub-hd{font-size:11px;font-weight:500;color:var(--text3);margin:14px 0 7px}
 .field{margin-top:12px}
 .flabel{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--text2);margin-bottom:6px}
@@ -430,10 +432,11 @@ input[type=color]::-moz-color-swatch{border:1.5px solid #fff;border-radius:50%}
     <div class="card">
       <div class="card-hd">스타일 프리셋</div>
       <div class="preset-grid" id="presetGrid"></div>
+      <button class="btn btn-ghost btn-full mt12" onclick="resetStyle('all')">스타일 모두 없애기</button>
     </div>
 
     <div class="card">
-      <div class="card-hd">글자 색</div>
+      <div class="card-hd">글자 색<button class="hd-act" onclick="resetStyle('color')">없애기</button></div>
       <div class="color-row" data-colors="color" data-list="#24193a,#ffffff,#ff5c8a,#ffd43b,#4dabf7,#51cf66,#8b5cf6"></div>
       <div class="toggle-row">
         <span class="toggle-label">그라데이션 채우기</span>
@@ -449,7 +452,7 @@ input[type=color]::-moz-color-swatch{border:1.5px solid #fff;border-radius:50%}
     </div>
 
     <div class="card">
-      <div class="card-hd">외곽선</div>
+      <div class="card-hd">외곽선<button class="hd-act" onclick="resetStyle('outline')">없애기</button></div>
       <div class="seg" data-p="outline">
         <button data-v="none">없음</button><button data-v="line">기본선</button><button data-v="double">이중선</button><button data-v="glow">네온</button>
       </div>
@@ -463,7 +466,7 @@ input[type=color]::-moz-color-swatch{border:1.5px solid #fff;border-radius:50%}
     </div>
 
     <div class="card">
-      <div class="card-hd">말풍선 · 라벨 배경</div>
+      <div class="card-hd">말풍선 · 라벨 배경<button class="hd-act" onclick="resetStyle('bubble')">없애기</button></div>
       <div class="seg" data-p="bubble">
         <button data-v="none">없음</button><button data-v="box">박스</button><button data-v="pill">알약</button><button data-v="bubble">말풍선</button>
       </div>
@@ -478,7 +481,7 @@ input[type=color]::-moz-color-swatch{border:1.5px solid #fff;border-radius:50%}
     </div>
 
     <div class="card">
-      <div class="card-hd">그림자</div>
+      <div class="card-hd">그림자<button class="hd-act" onclick="resetStyle('shadow')">없애기</button></div>
       <div class="color-row" data-colors="shadowColor" data-list="#000000,#24193a,#ffffff,#ff5c8a,#8b5cf6"></div>
       <div class="field"><div class="flabel">블러 <span data-show="shadowBlur"></span></div><input type="range" data-p="shadowBlur" min="0" max="50"></div>
       <div class="field"><div class="flabel">X 오프셋 <span data-show="shadowX"></span></div><input type="range" data-p="shadowX" min="-30" max="30"></div>
@@ -493,7 +496,7 @@ input[type=color]::-moz-color-swatch{border:1.5px solid #fff;border-radius:50%}
   <!-- MOTION -->
   <section class="tab-pane" data-pane="motion" hidden>
     <div class="card">
-      <div class="card-hd">레이어 움직임</div>
+      <div class="card-hd">레이어 움직임<button class="hd-act" onclick="resetStyle('anim')">없애기</button></div>
       <div class="seg anim-grid" data-p="anim" id="animGrid"></div>
       <div id="animOpts">
         <div class="field">
@@ -1092,6 +1095,19 @@ function setProp(p, v){
   const l = selLayer(); if (l) l[p] = v;
   if (p === 'font') document.fonts.load(`40px ${v}`, '가A').then(() => { wCache.clear(); inkCache.clear(); render(); });
   syncUI(); renderLayerList(); render(); scheduleCommit();
+}
+const RESETS = {
+  color:   { p:{ color:'#1c1c1f', useGrad:false }, msg:'글자 색을 기본으로 돌렸어요' },
+  outline: { p:{ outline:'none' }, msg:'외곽선을 없앴어요' },
+  bubble:  { p:{ bubble:'none' }, msg:'말풍선 배경을 없앴어요' },
+  shadow:  { p:{ shadowBlur:0, shadowX:0, shadowY:0 }, msg:'그림자를 없앴어요' },
+  anim:    { p:{ anim:'none' }, msg:'움직임을 없앴어요' },
+};
+RESETS.all = { p:{ ...RESETS.color.p, ...RESETS.outline.p, ...RESETS.bubble.p, ...RESETS.shadow.p, opacity:100 }, msg:'스타일을 모두 없앴어요' };
+function resetStyle(g){
+  const r = RESETS[g]; if (!r) return;
+  Object.assign(draft, r.p); const l = selLayer(); if (l) Object.assign(l, r.p);
+  syncUI(); renderLayerList(); render(); commit(); toast(r.msg);
 }
 function applyPreset(i){
   const p = PRESETS[i].p;
