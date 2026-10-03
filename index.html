@@ -4,1546 +4,1707 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Emoticon Stamp Maker</title>
-  <link rel="icon" type="image/png" href="MOMO.png">
-  <link rel="apple-touch-icon" href="MOMO.png">
+<link rel="icon" type="image/png" href="MOMO.png">
+<link rel="apple-touch-icon" href="MOMO.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=DM+Mono:wght@400;500&family=Jua&family=Do+Hyeon&family=Gugi&family=Gaegu&family=Nanum+Brush+Script&family=Nanum+Pen+Script&family=Hi+Melody&family=East+Sea+Dokdo&family=Sunflower:wght@700&family=Bubblegum+Sans&family=Fredoka+One&family=Pacifico&family=Boogaloo&family=Lilita+One&family=Righteous&family=Comfortaa:wght@700&display=swap" rel="stylesheet">
 
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --bg: #f4f5f7;
-  --surface: #ffffff;
-  --surface2: #f8f9fa;
-  --surface3: #f1f3f5;
-  --border: #e5e7eb;
-  --border2: #d1d5db;
-  --text: #111827;
-  --text2: #4b5563;
-  --text3: #9ca3af;
-  --accent: #4f46e5;
-  --accent-hover: #4338ca;
-  --accent-dim: rgba(79, 70, 229, 0.08);
-  --red: #ef4444;
-  --radius: 12px;
-  --radius-lg: 24px;
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow: 0 4px 12px rgba(0,0,0,0.05);
-  --shadow-lg: 0 20px 40px rgba(0,0,0,0.08);
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f5f6; --surface:#fff; --surface2:#f7f7f8; --surface3:#efeff1;
+  --border:#ececee; --border2:#dedee2;
+  --text:#18181b; --text2:#62626b; --text3:#a1a1a9;
+  --accent:#18181b; --accent-dim:rgba(24,24,27,.05);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.05);
+  --shadow:0 4px 16px rgba(0,0,0,.06);
+  --shadow-lg:0 1px 2px rgba(0,0,0,.04),0 16px 40px rgba(0,0,0,.08);
+  --checker:repeating-conic-gradient(#f1f1f3 0% 25%,#fff 0% 50%) 0 0/16px 16px;
+  --ease:cubic-bezier(.2,.7,.2,1);
 }
+html,body{height:100%;overflow:hidden}
+body{font-family:'Pretendard Variable',Pretendard,'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);font-size:12px;line-height:1.5;letter-spacing:-.01em;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;color:inherit;letter-spacing:inherit}
 
-html, body { height: 100%; overflow: hidden; }
+/* Layout */
+.app{display:grid;grid-template-columns:240px 1fr 284px;grid-template-rows:48px 1fr;height:100vh}
 
-body {
-  font-family: 'Noto Sans KR', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  font-size: 13px;
-  line-height: 1.5;
+/* Header */
+header{grid-column:1/-1;display:flex;align-items:center;gap:6px;padding:0 12px 0 16px;background:var(--surface);border-bottom:1px solid var(--border);z-index:20}
+.brand{display:flex;align-items:center;gap:8px}
+.brand-mark{width:14px;height:14px;border-radius:4px;background:var(--text);position:relative}
+.brand-mark::after{content:'';position:absolute;inset:4px;border-radius:1.5px;background:#fff}
+.brand-name{font-size:13px;font-weight:600;letter-spacing:-.02em}
+.brand-name span{color:var(--text3);font-weight:500}
+.brand-sub{display:none}
+.hdr-tools{display:flex;gap:0;margin-left:10px;padding-left:8px;border-left:1px solid var(--border)}
+.hdr-sep{flex:1}
+.hdr-meta{font-family:'DM Mono',monospace;font-size:10.5px;color:var(--text3);padding:0 10px}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid transparent;cursor:pointer;font-size:12px;font-weight:500;border-radius:7px;padding:6px 11px;transition:background .15s var(--ease),border-color .15s,color .15s,transform .1s;white-space:nowrap}
+.btn:active{transform:scale(.98)}
+.btn-grad,.btn-primary{background:var(--text);color:#fff}
+.btn-grad:hover,.btn-primary:hover{background:#2f2f35}
+.btn-soft,.btn-ghost{background:var(--surface);border-color:var(--border2);color:var(--text)}
+.btn-soft:hover,.btn-ghost:hover{background:var(--surface2)}
+.btn-full{width:100%}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.icon-btn{width:28px;height:28px;display:grid;place-items:center;border-radius:8px;border:none;background:transparent;color:var(--text2);cursor:pointer;transition:.15s}
+.icon-btn:hover:not(:disabled){background:var(--surface3);color:var(--text)}
+.icon-btn:disabled{opacity:.25;cursor:default}
+
+/* Panels */
+.panel{overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;background:var(--surface)}
+.panel.left{border-right:1px solid var(--border)}
+.panel.right{border-left:1px solid var(--border)}
+.panel::-webkit-scrollbar{width:4px}
+.panel::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.card{padding:16px;border-bottom:1px solid var(--border)}
+.card:last-child{border-bottom:none}
+.card-hd{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;color:var(--text2);margin-bottom:12px}
+.card-ic,.badge{display:none}
+.sub-hd{font-size:11px;font-weight:500;color:var(--text3);margin:14px 0 7px}
+.field{margin-top:12px}
+.flabel{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--text2);margin-bottom:6px}
+.flabel span{font-family:'DM Mono',monospace;font-size:10.5px;color:var(--text3)}
+.hint{font-size:11px;color:var(--text3);margin-top:10px;line-height:1.65}
+.row{display:flex;gap:6px;align-items:center}
+.grow{flex:1}
+.mt8{margin-top:8px}
+.mt12{margin-top:12px}
+
+/* Controls */
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:16px;background:transparent;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:2px;border-radius:2px;background:var(--border2)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;margin-top:-6px;border-radius:50%;background:#fff;border:1px solid var(--border2);box-shadow:0 1px 3px rgba(0,0,0,.15);transition:transform .15s var(--ease)}
+input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15)}
+input[type=range]::-moz-range-track{height:2px;background:var(--border2)}
+input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:#fff;border:1px solid var(--border2);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+select,input[type=text],textarea{width:100%;background:var(--surface);color:var(--text);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;font-family:inherit;font-size:12px;outline:none;transition:border-color .15s,box-shadow .15s}
+textarea{resize:vertical;min-height:54px;font-size:13px;line-height:1.5}
+select{appearance:none;-webkit-appearance:none;cursor:pointer;padding-right:30px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23a1a1a9' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center}
+select:focus,input[type=text]:focus,textarea:focus{border-color:var(--text2);box-shadow:0 0 0 3px rgba(24,24,27,.06)}
+input[type=color]{-webkit-appearance:none;appearance:none;width:18px;height:18px;border:none;border-radius:50%;background:conic-gradient(red,#ff0,lime,cyan,blue,#f0f,red);cursor:pointer;padding:0;flex-shrink:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+input[type=color]::-webkit-color-swatch-wrapper{padding:2.5px}
+input[type=color]::-webkit-color-swatch{border:1.5px solid #fff;border-radius:50%}
+input[type=color]::-moz-color-swatch{border:1.5px solid #fff;border-radius:50%}
+
+/* Segmented */
+.seg{display:flex;gap:2px;background:var(--surface3);padding:2px;border-radius:8px}
+.seg>button{flex:1;padding:5px 4px;border:none;background:transparent;border-radius:6px;font-size:11.5px;font-weight:500;color:var(--text2);cursor:pointer;transition:.15s var(--ease);display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap}
+.seg>button:hover{color:var(--text)}
+.seg>button.active{background:#fff;color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.08),0 0 0 .5px rgba(0,0,0,.04)}
+.tog-btn{width:28px;height:28px;border-radius:7px;border:1px solid var(--border2);background:var(--surface);cursor:pointer;font-size:13px;color:var(--text2);transition:.15s;flex-shrink:0}
+.tog-btn.on{background:var(--text);border-color:var(--text);color:#fff}
+
+/* Switch */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
+.toggle-label{font-size:11.5px;color:var(--text2)}
+.toggle{width:26px;height:16px;background:var(--border2);border-radius:999px;cursor:pointer;position:relative;transition:background .2s var(--ease);flex-shrink:0}
+.toggle.on{background:var(--text)}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;background:#fff;border-radius:50%;transition:transform .2s var(--ease);box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.toggle.on::after{transform:translateX(10px)}
+
+/* Colors */
+.color-row{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.dot{width:18px;height:18px;border-radius:50%;background:var(--c);border:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1);cursor:pointer;padding:0;flex-shrink:0;transition:box-shadow .15s,transform .15s var(--ease)}
+.dot:hover{transform:scale(1.08)}
+.dot.selected{box-shadow:inset 0 0 0 1px rgba(0,0,0,.1),0 0 0 2px #fff,0 0 0 3px var(--text)}
+.grad-box{display:flex;align-items:center;gap:14px;margin-top:14px}
+#gradWheel{cursor:crosshair;border-radius:50%;touch-action:none;flex-shrink:0;width:48px;height:48px}
+.grad-preview{height:6px;border-radius:3px;margin-bottom:10px}
+
+/* Upload / bg */
+.upload-zone{border:1px dashed var(--border2);border-radius:8px;padding:14px 10px;text-align:center;cursor:pointer;transition:.15s}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--text2);background:var(--surface2)}
+.upload-icon{margin:0 auto 6px;color:var(--text3);display:grid;place-items:center}
+.upload-title{font-weight:500;font-size:12px}
+.upload-sub{color:var(--text3);font-size:10.5px;margin-top:2px}
+#fileInput{display:none}
+.bg-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
+.bg-swatch{width:100%;aspect-ratio:1;border-radius:50%;cursor:pointer;border:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.09);transition:box-shadow .15s,transform .15s var(--ease);padding:0}
+.bg-swatch:hover{transform:scale(1.06)}
+.bg-swatch.selected{box-shadow:inset 0 0 0 1px rgba(0,0,0,.09),0 0 0 2px #fff,0 0 0 3.5px var(--text)}
+.bg-grid input[type=color]{width:100%;height:auto;aspect-ratio:1}
+
+/* Stage */
+.stage{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;overflow:hidden;padding:24px;background:var(--bg)}
+.canvas-wrap{position:relative;aspect-ratio:1/1;width:min(520px,100%,calc(100vh - 170px));border-radius:12px;overflow:hidden;box-shadow:var(--shadow-lg);background:var(--checker);z-index:1}
+#mainCanvas{display:block;width:100%;height:100%;touch-action:none}
+.drop-hint{position:absolute;inset:0;display:none;place-items:center;background:rgba(255,255,255,.75);border:1.5px dashed var(--text2);border-radius:14px;font-weight:550;color:var(--text);font-size:13px;pointer-events:none}
+.canvas-wrap.drag .drop-hint{display:grid}
+.stage-bar{display:flex;gap:2px;align-items:center;z-index:1}
+.chip-btn{white-space:nowrap;border:none;background:transparent;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:500;color:var(--text3);cursor:pointer;display:flex;align-items:center;gap:6px;transition:.15s}
+.chip-btn::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--border2);transition:.15s}
+.chip-btn:hover{color:var(--text2)}
+.chip-btn.on{color:var(--text)}
+.chip-btn.on::before{background:var(--text)}
+#playIc{display:none}
+.stage-info{font-size:10.5px;color:var(--text3);padding:0 10px;font-family:'DM Mono',monospace;border-left:1px solid var(--border2);margin-left:6px}
+.caption{font-size:10.5px;color:var(--text3);text-align:center;z-index:1}
+.caption b{color:var(--text2);font-weight:500}
+.caption.mobile{display:none}
+
+/* Tabs */
+.tabs{position:sticky;top:0;z-index:5;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
+.tabs-inner{display:grid;grid-template-columns:repeat(4,1fr);padding:0 8px}
+.tab-btn{border:none;background:transparent;padding:11px 0 10px;cursor:pointer;color:var(--text3);font-size:12px;font-weight:500;position:relative;transition:color .15s}
+.tab-btn .ti{display:none}
+.tab-btn:hover{color:var(--text2)}
+.tab-btn.active{color:var(--text)}
+.tab-btn.active::after{content:'';position:absolute;left:32%;right:32%;bottom:-1px;height:1.5px;background:var(--text);border-radius:2px}
+.tab-pane{display:flex;flex-direction:column}
+.tab-pane[hidden]{display:none}
+.sel-hint{font-size:11px;color:var(--text2);background:var(--surface2);border-radius:7px;padding:8px 10px;margin:12px 16px 0;line-height:1.55}
+.sel-hint[hidden]{display:none}
+
+/* Stickers / presets / anim */
+.preset-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.preset{border:none;background:none;cursor:pointer;padding:0;display:flex;flex-direction:column;align-items:stretch;gap:5px}
+.preset:hover .pv{box-shadow:inset 0 0 0 1px rgba(0,0,0,.14)}
+.preset:active .pv{transform:scale(.97)}
+.preset .pv{display:block;width:100%;height:48px;border-radius:8px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04);transition:box-shadow .15s,transform .1s}
+.preset .pn{font-size:10.5px;color:var(--text2);text-align:center}
+.anim-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:none;padding:0}
+.anim-grid>button{padding:6px 0;background:var(--surface);border:1px solid var(--border);border-radius:7px;font-size:11.5px}
+.anim-grid>button:hover{border-color:var(--border2)}
+.anim-grid>button.active{background:var(--text);border-color:var(--text);color:#fff;box-shadow:none}
+.anim-grid .ai{display:none}
+.dim{opacity:.4;pointer-events:none}
+.align-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:2px}
+.align-grid button{padding:7px 0}
+
+/* Layers */
+.layer{border-radius:10px;padding:8px;border:1px solid transparent;cursor:pointer;margin-bottom:2px;transition:background .15s}
+.layer:hover{background:var(--surface2)}
+.layer.active{background:var(--surface2);border-color:var(--border)}
+.layer.is-hidden .layer-main>*:not(.layer-quick){opacity:.4}
+.layer-main{display:flex;align-items:center;gap:10px}
+.layer-thumb{width:28px;height:28px;border-radius:8px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);display:grid;place-items:center;font-weight:700;font-size:15px;flex-shrink:0;overflow:hidden}
+.layer-info{flex:1;min-width:0}
+.layer-name{font-weight:500;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.layer-sub{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.layer-quick{display:flex;gap:0}
+.mini{width:26px;height:26px;border-radius:6px;border:none;background:transparent;color:var(--text3);cursor:pointer;display:grid;place-items:center;transition:.15s}
+.mini:hover{background:var(--surface3);color:var(--text)}
+.mini.on{color:var(--text2)}
+.mini.danger:hover{background:#fdecec;color:#d4393b}
+.layer-acts{display:none;gap:2px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.layer.active .layer-acts{display:flex}
+.layer-acts .mini{flex:1;width:auto}
+.empty-state{text-align:center;padding:28px 12px;color:var(--text3);font-size:12px;line-height:1.7}
+.count-pill{margin-left:auto;font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);font-weight:400}
+
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(10,10,12,.28);backdrop-filter:blur(3px);display:grid;place-items:center;z-index:100;padding:16px;animation:fade .2s var(--ease)}
+.modal[hidden]{display:none}
+.modal-card{width:min(400px,100%);max-height:calc(100dvh - 32px);display:flex;flex-direction:column;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(0,0,0,.18),0 0 0 1px rgba(0,0,0,.04);overflow:hidden;animation:rise .25s var(--ease)}
+.modal-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:16px 16px 2px}
+.modal-title{font-size:14px;font-weight:650;letter-spacing:-.02em}
+.modal-sub{font-size:11.5px;color:var(--text3);margin-top:2px}
+.modal-bd{padding:2px 16px 16px;overflow-y:auto}
+.modal-ft{display:flex;gap:6px;justify-content:flex-end;padding:12px 16px;border-top:1px solid var(--border)}
+@keyframes fade{from{opacity:0}}
+@keyframes rise{from{opacity:0;transform:translateY(6px) scale(.99)}}
+.progress{height:2px;background:var(--surface3);border-radius:2px;overflow:hidden;margin-top:18px}
+.progress[hidden]{display:none}
+.progress>div{height:100%;width:0;background:var(--text);transition:width .1s}
+.ex-info{margin-top:14px;font-size:12px;color:var(--text2);line-height:1.6}
+.ex-preview{margin-top:16px;border-radius:10px;border:1px solid var(--border);padding:10px;display:flex;gap:14px;align-items:center}
+.ex-preview[hidden]{display:none}
+.ex-preview img{width:80px;height:80px;object-fit:contain;border-radius:6px;background:var(--checker)}
+.ex-preview .ep-name{font-weight:550;font-size:12.5px;word-break:break-all}
+.ex-preview .ep-sub{font-size:11.5px;color:var(--text3);margin-top:2px}
+.ex-preview a{display:inline-block;margin-top:6px;font-size:12px;font-weight:500;color:var(--text);text-decoration:underline;text-underline-offset:2px}
+
+.ooc-item{border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:14px}
+.ooc-top{display:flex;align-items:center;gap:10px}
+.ooc-emoji{display:none}
+.ooc-meta{flex:1;min-width:0}
+.ooc-title{font-weight:600;font-size:12.5px}
+.ooc-desc{font-size:11.5px;color:var(--text3)}
+.ooc-body{margin-top:10px;font-size:11.5px;color:var(--text2);background:var(--surface2);border-radius:8px;padding:11px 12px;max-height:150px;overflow:auto;white-space:pre-wrap;line-height:1.7}
+.ooc-body.empty{color:var(--text3);text-align:center}
+
+/* Toast */
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(10px);background:var(--text);color:#fff;padding:9px 14px;border-radius:8px;font-size:12.5px;font-weight:500;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.25s var(--ease);z-index:200;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Responsive */
+@media (max-width:980px){
+  .app{grid-template-columns:248px 1fr 296px}
+  .hdr-meta{display:none}
 }
-
-/* ── Layout ── */
-.app {
-  display: grid;
-  grid-template-columns: 280px 1fr 300px;
-  grid-template-rows: 56px 1fr;
-  height: 100vh;
+@media (max-width:860px){
+  html,body{height:auto;overflow-x:hidden;overflow-y:auto}
+  .app{display:flex;flex-direction:column;height:auto;min-height:100dvh}
+  header{height:48px;flex-shrink:0;position:sticky;top:0;padding:0 10px 0 14px;gap:4px}
+  .hdr-tools{margin-left:4px;padding-left:6px}
+  .btn-label{display:none}
+  header .btn{padding:6px 9px}
+  .stage{order:1;padding:16px 12px;flex-shrink:0;overflow:visible}
+  .canvas-wrap{width:min(90vw,56vh)}
+  .panel{width:100%;border:none!important;overflow:visible}
+  .panel.right{order:2;border-top:1px solid var(--border)!important}
+  .panel.left{order:3;border-top:8px solid var(--bg)!important;padding-bottom:24px}
+  .tabs{top:48px}
+  .caption.desktop{display:none}
+  .caption.mobile{display:block}
+  .stage-info,.chip-label{display:none}
 }
-
-/* ── Header ── */
-header {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  padding: 0 24px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  gap: 16px;
-  z-index: 10;
-}
-.logo {
-  font-family: 'DM Mono', monospace;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--accent);
-  letter-spacing: -0.5px;
-}
-.header-sep { flex: 1; }
-.header-meta {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text2);
-  background: var(--surface3);
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-family: 'DM Mono', monospace;
-}
-
-/* ── Left panel ── */
-.left-panel {
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-/* ── Canvas area ── */
-.canvas-area {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  background: var(--bg);
-  position: relative;
-  overflow: hidden;
-}
-.canvas-bg-pattern {
-  position: absolute; inset: 0;
-  background-image: radial-gradient(circle, var(--border2) 1px, transparent 1px);
-  background-size: 24px 24px;
-  pointer-events: none;
-  opacity: 0.5;
-}
-.canvas-wrap {
-  position: relative;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow-lg);
-  /* 투명 배경이 보이도록 체커보드 패턴 표시 */
-  background-color: #fff;
-  background-image:
-    linear-gradient(45deg, #e9ebef 25%, transparent 25%),
-    linear-gradient(-45deg, #e9ebef 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #e9ebef 75%),
-    linear-gradient(-45deg, transparent 75%, #e9ebef 75%);
-  background-size: 20px 20px;
-  background-position: 0 0, 0 10px, 10px -10px, -10px 0;
-  border: 1px solid var(--border);
-  /* 항상 정사각형 비율 유지 → 화면이 줄어도 글씨가 찌그러지지 않음 */
-  aspect-ratio: 1 / 1;
-  width: min(520px, 100%, calc(100vh - 150px));
-}
-#mainCanvas { display: block; width: 100%; height: 100%; }
-
-/* ── Right panel ── */
-.right-panel {
-  background: var(--surface);
-  border-left: 1px solid var(--border);
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-/* ── Panels Shared ── */
-.left-panel::-webkit-scrollbar, .right-panel::-webkit-scrollbar { width: 6px; }
-.left-panel::-webkit-scrollbar-thumb, .right-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-/* ── Section ── */
-.section { padding: 20px; }
-.section-last { padding-bottom: 24px; }
-.section + .section { border-top: 1px solid var(--border); margin-top: 0; }
-
-.section-label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  color: var(--text3);
-  margin-bottom: 12px;
-}
-
-/* ── Upload zone ── */
-.upload-zone {
-  border: 2px dashed var(--border2);
-  border-radius: var(--radius);
-  padding: 24px 16px;
-  text-align: center;
-  cursor: pointer;
-  background: var(--surface2);
-  transition: all 0.2s ease;
-  margin-bottom: 16px;
-}
-.upload-zone:hover {
-  border-color: var(--accent);
-  background: var(--accent-dim);
-}
-.upload-zone .upload-icon { font-size: 24px; margin-bottom: 8px; color: var(--accent); }
-.upload-zone .upload-title { font-weight: 600; color: var(--text); font-size: 13px; }
-.upload-zone .upload-sub { color: var(--text3); font-size: 12px; margin-top: 4px; }
-#fileInput { display: none; }
-
-/* ── Buttons ── */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  border-radius: 8px;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-.btn:active { transform: scale(0.97); }
-
-.btn-ghost { background: transparent; color: var(--text2); padding: 8px 12px; border: 1px solid var(--border); }
-.btn-ghost:hover { background: var(--surface3); color: var(--text); border-color: var(--border2); }
-
-.btn-accent { background: var(--accent); color: #fff; padding: 10px 16px; box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3); }
-.btn-accent:hover { background: var(--accent-hover); }
-
-.btn-surface { background: var(--surface2); color: var(--text); padding: 8px 12px; border: 1px solid var(--border); }
-.btn-surface:hover { background: var(--surface3); border-color: var(--border2); }
-
-.btn-icon { width: 32px; height: 32px; background: var(--surface); color: var(--text2); border-radius: 8px; border: 1px solid var(--border); padding: 0; font-size: 14px; }
-.btn-icon:hover { background: var(--surface3); color: var(--text); }
-
-.btn-danger { background: transparent; color: var(--red); padding: 6px 10px; border: 1px solid rgba(239, 68, 68, 0.3); font-size: 12px; }
-.btn-danger:hover { background: rgba(239, 68, 68, 0.1); }
-.btn-full { width: 100%; }
-
-/* ── Form controls ── */
-.field { margin-bottom: 16px; }
-.field-label { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 8px; }
-.field-label span { color: var(--accent); font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 600;}
-
-input[type=range] {
-  width: 100%; height: 4px; accent-color: var(--accent); cursor: pointer; background: var(--border); border-radius: 2px; outline: none; appearance: none;
-}
-input[type=range]::-webkit-slider-thumb {
-  appearance: none; width: 16px; height: 16px; background: #fff; border: 2px solid var(--accent); border-radius: 50%; box-shadow: var(--shadow-sm); transition: transform 0.1s;
-}
-input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
-
-select {
-  width: 100%; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; outline: none; appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239ca3af' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 12px center;
-  transition: border-color 0.2s;
-}
-select:focus, select:hover { border-color: var(--accent); }
-
-input[type=text] {
-  width: 100%; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-family: inherit; font-size: 14px; outline: none; transition: border-color 0.2s;
-}
-input[type=text]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
-
-input[type=color] {
-  width: 32px; height: 32px; border: 1px solid var(--border); border-radius: 8px; background: #fff; cursor: pointer; padding: 2px; transition: transform 0.1s;
-}
-input[type=color]:hover { transform: scale(1.05); }
-
-/* ── Tab bar ── */
-.tab-bar { display: flex; border-bottom: 1px solid var(--border); background: var(--surface); }
-.tab-btn {
-  flex: 1; padding: 14px 8px; background: none; border: none; color: var(--text3); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: color 0.2s; position: relative;
-}
-.tab-btn:hover { color: var(--text); }
-.tab-btn.active { color: var(--accent); }
-.tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--accent); border-radius: 2px 2px 0 0; }
-
-/* ── Color row ── */
-.color-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.color-dot {
-  width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--border); transition: transform 0.1s; flex-shrink: 0;
-}
-.color-dot:hover { transform: scale(1.15); }
-.color-dot.selected { box-shadow: 0 0 0 2px var(--accent); }
-
-/* ── Layer list ── */
-.layer-item {
-  display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--radius); cursor: pointer; transition: all 0.2s; border: 1px solid transparent; margin-bottom: 6px; background: var(--surface2);
-}
-.layer-item:hover { background: var(--surface3); }
-.layer-item.active { background: var(--surface); border-color: var(--accent); box-shadow: var(--shadow-sm); }
-.layer-thumb {
-  width: 36px; height: 36px; border-radius: 8px; background: #fff; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; overflow: hidden; font-weight: 700;
-}
-.layer-info { flex: 1; min-width: 0; }
-.layer-name { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
-.layer-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
-.layer-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.2s; }
-.layer-item:hover .layer-actions, .layer-item.active .layer-actions { opacity: 1; }
-
-/* ── BG grid ── */
-.bg-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-.bg-swatch { width: 100%; aspect-ratio: 1; border-radius: 8px; cursor: pointer; border: 1px solid var(--border); transition: transform 0.1s; }
-.bg-swatch:hover { transform: scale(1.05); }
-.bg-swatch.selected { box-shadow: 0 0 0 2px var(--accent); }
-
-/* ── Misc ── */
-.empty-state { text-align: center; padding: 32px 16px; color: var(--text3); font-size: 13px; }
-.divider { height: 1px; background: var(--border); margin: 20px 0; }
-.canvas-guide { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; pointer-events: none; background: rgba(255,255,255,0.7); }
-.canvas-guide.hidden { display: none; }
-.canvas-guide-icon { font-size: 32px; color: var(--border2); }
-.canvas-guide-text { font-size: 13px; color: var(--text2); text-align: center; font-weight: 500;}
-.canvas-caption-mobile { display: none; }
-
-/* ── Toggle ── */
-.toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.toggle-label { font-size: 12px; font-weight: 500; color: var(--text); }
-.toggle { width: 40px; height: 22px; background: var(--border2); border-radius: 999px; cursor: pointer; position: relative; transition: background 0.2s; flex-shrink: 0; }
-.toggle.on { background: var(--accent); }
-.toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-.toggle.on::after { transform: translateX(18px); }
-
-/* ── Sub Options Picker ── */
-.outline-picker { 
-  display: flex; 
-  gap: 4px; 
-  background: var(--surface2); 
-  padding: 4px; 
-  border-radius: 10px; 
-  flex-wrap: nowrap;
-}
-.outline-opt { 
-  flex: 1; 
-  padding: 6px 2px; 
-  background: transparent; 
-  border: none; 
-  border-radius: 6px; 
-  color: var(--text2); 
-  font-size: 12px; 
-  font-weight: 600; 
-  cursor: pointer; 
-  text-align: center; 
-  transition: all 0.15s; 
-  white-space: nowrap;
-}
-.outline-opt:hover { background: rgba(0,0,0,0.03); color: var(--text); }
-.outline-opt:active { transform: scale(0.95); }
-.outline-opt.active { background: #fff; color: var(--accent); box-shadow: var(--shadow-sm); }
-
-.grad-preview { height: 12px; border-radius: 6px; margin-bottom: 12px; border: 1px solid var(--border); }
-
-/* ── Font Preload Hidden Zone ── */
-.font-preload {
-  position: absolute;
-  width: 0;
-  height: 0;
-  overflow: hidden;
-  visibility: hidden;
-  pointer-events: none;
-  z-index: -999;
-}
-
-/* ── 모바일 / 반응형 레이아웃 ── */
-@media (max-width: 860px) {
-  html, body { height: auto; overflow-x: hidden; overflow-y: auto; }
-  .app {
-    display: flex;
-    flex-direction: column;
-    height: auto;
-    min-height: 100dvh;
-  }
-  header {
-    height: 56px;
-    flex-shrink: 0;
-    position: sticky;
-    top: 0;
-    padding: 0 16px;
-  }
-  .header-meta { display: none; }
-  .canvas-area {
-    order: 1;
-    padding: 16px 12px;
-    flex-shrink: 0;
-    overflow: visible;
-  }
-  .canvas-bg-pattern { display: none; }
-  .canvas-wrap { width: min(86vw, 56vh); }
-  .left-panel, .right-panel {
-    width: 100%;
-    border: none;
-    border-top: 1px solid var(--border);
-    overflow: visible;
-  }
-  .right-panel { order: 2; }   /* 텍스트/스타일/레이어 편집을 먼저 노출 */
-  .left-panel  { order: 3; }   /* 배경·저장은 그 아래로 */
-  .right-panel .tab-bar { position: sticky; top: 56px; z-index: 9; }
-  .canvas-caption-desktop { display: none; }
-  .canvas-caption-mobile { display: block; }
-}
-@media (max-width: 420px) {
-  .canvas-wrap { width: min(90vw, 50vh); }
-  .section { padding: 16px; }
+@media (max-width:420px){
+  .canvas-wrap{width:92vw}
+  .card{padding:18px 16px}
+  .hdr-tools{display:none}
 }
 </style>
 </head>
 <body>
-
-<div class="font-preload">
-  <span style="font-family:'Noto Sans KR'; font-weight:400;">미리받기</span>
-  <span style="font-family:'Noto Sans KR'; font-weight:700;">미리받기</span>
-  <span style="font-family:'Do Hyeon';">미리받기</span>
-  <span style="font-family:'Gugi';">미리받기</span>
-  <span style="font-family:'Jua';">미리받기</span>
-  <span style="font-family:'Hi Melody';">미리받기</span>
-  <span style="font-family:'Nanum Pen Script';">미리받기</span>
-  <span style="font-family:'East Sea Dokdo';">미리받기</span>
-  <span style="font-family:'Fredoka One';">Preload</span>
-  <span style="font-family:'Pacifico';">Preload</span>
-  <span style="font-family:'Lilita One';">Preload</span>
-</div>
-
 <div class="app">
 
+<!-- ═════════ Header ═════════ -->
 <header>
-  <span class="logo">StampMaker</span>
-  <div class="header-sep"></div>
-  <span class="header-meta">정사각형 600 × 600</span>
+  <div class="brand">
+    <div class="brand-mark"></div>
+    <div>
+      <div class="brand-name">Stamp Maker</div>
+      <div class="brand-sub">이모티콘 · 스탬프 메이커</div>
+    </div>
+  </div>
+  <div class="hdr-tools">
+    <button class="icon-btn" id="undoBtn" onclick="undo()" title="실행 취소 (Ctrl+Z)">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/></svg>
+    </button>
+    <button class="icon-btn" id="redoBtn" onclick="redo()" title="다시 실행 (Ctrl+Shift+Z)">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 000 11H13"/></svg>
+    </button>
+  </div>
+  <div class="hdr-sep"></div>
+  <span class="hdr-meta">600 × 600</span>
+  <button class="btn btn-soft" onclick="openModal('oocModal')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M16 5h2a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h2"/></svg><span class="btn-label">OOC</span></button>
+  <button class="btn btn-grad" onclick="openExport()">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+    <span class="btn-label">내보내기</span>
+  </button>
 </header>
 
-<div class="left-panel">
-  <div class="section">
-    <div class="section-label">배경 이미지</div>
-    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
-      <div class="upload-icon">
-        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-      </div>
+<!-- ═════════ Left panel ═════════ -->
+<aside class="panel left">
+  <div class="card">
+    <div class="card-hd">배경 이미지</div>
+    <div class="upload-zone" id="uploadZone" onclick="$('fileInput').click()">
+      <div class="upload-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 8l-4-4-4 4M12 4v12"/></svg></div>
       <div class="upload-title">이미지 업로드</div>
-      <div class="upload-sub">클릭 또는 드래그 & 드롭</div>
+      <div class="upload-sub">클릭 · 드래그 & 드롭 · Ctrl+V 붙여넣기</div>
     </div>
-    <input type="file" id="fileInput" accept="image/*" onchange="loadImage(event)">
-
-    <div class="field" style="margin-bottom: 0;">
-      <div class="field-label">배경 크기 (마우스로 캔버스 이동 가능) <span id="bgScaleV">100</span>%</div>
-      <input type="range" id="bgScaleRange" min="10" max="300" value="100" oninput="updateBgScale(this.value)">
+    <input type="file" id="fileInput" accept="image/*">
+    <div class="field">
+      <div class="flabel">배경 크기 <span id="bgScaleV">100%</span></div>
+      <input type="range" id="bgScaleRange" min="10" max="300" value="100">
     </div>
-    <div style="margin-top:12px;">
-      <button class="btn btn-surface btn-full" id="bgLockBtn" onclick="toggleBgLock()" style="gap:8px;">
-        🔓 이미지 고정 해제됨
-      </button>
+    <div class="row mt12">
+      <button class="btn btn-ghost grow" onclick="fitBg('cover')" style="padding:6px 4px;font-size:11.5px">꽉 채우기</button>
+      <button class="btn btn-ghost grow" onclick="fitBg('contain')" style="padding:6px 4px;font-size:11.5px">전체 보기</button>
+      <button class="btn btn-ghost" onclick="removeBg()" style="padding:6px 8px;font-size:11.5px" title="이미지 제거">제거</button>
     </div>
-  </div>
-
-  <div class="section">
-    <div class="section-label">배경 단색</div>
-    <div class="bg-grid">
-      <div class="bg-swatch selected" style="background:repeating-conic-gradient(#e5e7eb 0% 25%, #ffffff 0% 50%) 0 0/16px 16px" onclick="setBg('transparent',this)" title="투명"></div>
-      <div class="bg-swatch" style="background:#ffffff" onclick="setBg('#ffffff',this)"></div>
-      <div class="bg-swatch" style="background:#111827" onclick="setBg('#111827',this)"></div>
-      <div class="bg-swatch" style="background:#fee2e2" onclick="setBg('#fee2e2',this)"></div>
-      <div class="bg-swatch" style="background:#e0e7ff" onclick="setBg('#e0e7ff',this)"></div>
-      <div class="bg-swatch" style="background:#fef3c7" onclick="setBg('#fef3c7',this)"></div>
-      <div class="bg-swatch" style="background:#dcfce7" onclick="setBg('#dcfce7',this)"></div>
-      <div class="bg-swatch" style="background:#f3e8ff" onclick="setBg('#f3e8ff',this)"></div>
-      <input type="color" value="#ffffff" onchange="setBg(this.value)" style="width:100%;height:100%;padding:2px;border-radius:8px;cursor:pointer;">
+    <div class="toggle-row">
+      <span class="toggle-label">이미지 위치 고정</span>
+      <div class="toggle" id="bgLockToggle" onclick="toggleBgLock()"></div>
     </div>
   </div>
 
-  <div class="section section-last">
-    <div class="section-label">내보내기 & 초기화</div>
-    <div style="display: flex; gap: 8px;">
-      <button class="btn btn-accent" style="flex:2" onclick="save('png')">저장하기</button>
-      <button class="btn btn-ghost" style="flex:1" onclick="clearAll()">초기화</button>
+  <div class="card" id="cutCard">
+    <div class="card-hd">배경 지우기</div>
+    <button class="btn btn-primary btn-full" id="cutBtn" onclick="toggleCut()">배경 투명하게 만들기</button>
+    <div id="cutOpts" style="display:none">
+      <div class="field">
+        <div class="flabel">지울 색</div>
+        <div class="row">
+          <input type="color" id="cutColor" value="#ffffff">
+          <span class="hint" style="margin:0;flex:1" id="cutColorHex">#ffffff</span>
+          <button class="btn btn-ghost" id="pickBtn" onclick="startPick()" style="padding:5px 9px;font-size:11px">캔버스에서 고르기</button>
+        </div>
+      </div>
+      <div class="field"><div class="flabel">허용 범위 <span id="cutTolV">40</span></div><input type="range" id="cutTol" min="4" max="160" value="40"></div>
+      <div class="toggle-row"><span class="toggle-label">가장자리 부드럽게</span><div class="toggle on" id="cutSoft"></div></div>
+      <div class="sub-hd">안쪽 빈 곳 지우기</div>
+      <div class="row">
+        <button class="btn btn-ghost grow" id="holeBtn" onclick="toggleHole()" style="padding:6px 8px;font-size:11.5px">클릭해서 지우기</button>
+        <button class="btn btn-ghost" onclick="clearHoles()" style="padding:6px 9px;font-size:11.5px">초기화</button>
+      </div>
+      <p class="hint" style="margin-top:8px">팔 사이처럼 테두리에 닿지 않은 배경을 캔버스에서 눌러 주세요. 누른 곳과 이어진 부분만 지워져요.</p>
     </div>
+    <p class="hint" id="cutHint">흰색처럼 단색 배경인 이미지에 잘 맞아요. 가장자리에서 이어진 배경만 지워서 캐릭터 안쪽의 흰 부분은 남아요.</p>
   </div>
-</div>
 
-<div class="canvas-area">
-  <div class="canvas-bg-pattern"></div>
+  <div class="card">
+    <div class="card-hd">배경색</div>
+    <div class="bg-grid" id="bgGrid"></div>
+    <p class="hint">체크무늬 = 투명 배경. PNG·GIF 모두 투명으로 저장돼요.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-hd">저장 & 초기화</div>
+    <div class="row">
+      <button class="btn btn-grad grow" onclick="openExport('png')">PNG 저장</button>
+      <button class="btn btn-grad grow" onclick="openExport('gif')">GIF 저장</button>
+    </div>
+    <button class="btn btn-ghost btn-full mt8" onclick="clearAll()">처음부터 다시</button>
+    <p class="hint">작업 내용은 이 브라우저에 자동 저장돼요. (배경 이미지는 제외)</p>
+  </div>
+</aside>
+
+<!-- ═════════ Stage ═════════ -->
+<main class="stage">
   <div class="canvas-wrap" id="canvasWrap">
-    <canvas id="mainCanvas" width="600" height="600"></canvas>
-    <div class="canvas-guide hidden" id="guide">
-      <div class="canvas-guide-icon">📝</div>
-      <div class="canvas-guide-text">우측 패널에서<br>텍스트 칸에 내용을 적고<br><b>[+ 추가]</b>를 눌러보세요</div>
+    <canvas id="mainCanvas"></canvas>
+    <div class="drop-hint">여기에 놓으면 배경 이미지로 들어가요</div>
+  </div>
+  <div class="stage-bar">
+    <button class="chip-btn on" id="playBtn" onclick="togglePlay()"><span id="playIc"></span>움직임<span class="chip-label"> 미리보기</span></button>
+    <button class="chip-btn on" id="snapBtn" onclick="toggleSnap()"><span class="chip-label">중앙 </span>스냅</button>
+    <span class="stage-info" id="stageInfo"></span>
+  </div>
+  <div class="caption desktop">
+    <b>드래그</b> 이동 · <b>Shift+드래그</b> 크기 · <b>우클릭+드래그</b> 회전 · <b>더블클릭</b> 편집 · <b>방향키</b> 미세 이동 · <b>Ctrl+D</b> 복제
+  </div>
+  <div class="caption mobile">탭 선택 · 드래그 이동 · 모서리 손잡이로 크기/회전 · 더블탭 편집</div>
+</main>
+
+<!-- ═════════ Right panel ═════════ -->
+<aside class="panel right">
+  <div class="tabs">
+    <div class="tabs-inner">
+      <button class="tab-btn active" data-tab="text">텍스트</button>
+      <button class="tab-btn" data-tab="style">스타일</button>
+      <button class="tab-btn" data-tab="motion">움직임</button>
+      <button class="tab-btn" data-tab="layers">레이어</button>
     </div>
   </div>
-  <div class="canvas-caption-desktop" style="font-size:11px;color:var(--text3);text-align:center;letter-spacing:0.2px;">
-    드래그: 이동 &nbsp;|&nbsp; <b>Shift</b>+드래그: 크기 &nbsp;|&nbsp; 우클릭+드래그: 회전 &nbsp;|&nbsp; 더블클릭: 텍스트 편집
-  </div>
-  <div class="canvas-caption-mobile" style="font-size:11px;color:var(--text3);text-align:center;letter-spacing:0.2px;">
-    탭하여 선택 · 드래그로 이동 · 모서리 손잡이로 크기 / 회전 · 더블탭으로 편집
+
+  <div class="sel-hint" id="selHint" hidden>선택된 레이어가 없어요. 지금 바꾸는 값은 <b>다음에 추가할 텍스트</b>에 적용돼요.</div>
+
+  <!-- TEXT -->
+  <section class="tab-pane" data-pane="text">
+    <div class="card">
+      <div class="card-hd">내용</div>
+      <textarea id="txtInput" data-p="text" rows="2" placeholder="텍스트 입력 · Enter로 줄바꿈"></textarea>
+      <button class="btn btn-primary btn-full mt8" onclick="addTextLayer('새 텍스트',{},true)">새 텍스트 추가</button>
+    </div>
+
+    <div class="card">
+      <div class="card-hd">글꼴</div>
+      <select id="fontSel" data-p="font"></select>
+      <div class="row mt8">
+        <div class="seg grow" data-p="align">
+          <button data-v="left" title="왼쪽 정렬"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h13"/></svg></button>
+          <button data-v="center" title="가운데 정렬"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M7 12h10M5.5 18h13"/></svg></button>
+          <button data-v="right" title="오른쪽 정렬"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M10 12h10M7 18h13"/></svg></button>
+        </div>
+        <button class="tog-btn" data-p="bold" data-bool title="굵게"><b>B</b></button>
+        <button class="tog-btn" data-p="italic" data-bool title="기울임"><i style="font-family:serif">I</i></button>
+      </div>
+      <div class="field"><div class="flabel">글자 크기 <span data-show="fontSize"></span></div><input type="range" data-p="fontSize" min="10" max="400"></div>
+      <div class="field"><div class="flabel">자간 <span data-show="letterSpacing"></span></div><input type="range" data-p="letterSpacing" min="-10" max="50"></div>
+      <div class="field"><div class="flabel">줄 간격 <span data-show="lineHeight"></span></div><input type="range" data-p="lineHeight" min="0.8" max="2" step="0.05"></div>
+      <div class="field"><div class="flabel">회전 <span data-show="rotate"></span></div><input type="range" data-p="rotate" min="-180" max="180"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd">캔버스 기준 정렬</div>
+      <div class="seg align-grid">
+        <button onclick="alignCanvas('left')" title="왼쪽 끝"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="2" width="2" height="12" rx=".5"/><rect x="5" y="4" width="8" height="8" rx="1"/></svg></button>
+        <button onclick="alignCanvas('center')" title="가로 중앙"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="7" y="2" width="2" height="12" rx=".5"/><rect x="4" y="4" width="8" height="8" rx="1" opacity=".7"/></svg></button>
+        <button onclick="alignCanvas('right')" title="오른쪽 끝"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="12" y="2" width="2" height="12" rx=".5"/><rect x="3" y="4" width="8" height="8" rx="1"/></svg></button>
+        <button onclick="alignCanvas('top')" title="위쪽 끝"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="2" width="12" height="2" rx=".5"/><rect x="4" y="5" width="8" height="8" rx="1"/></svg></button>
+        <button onclick="alignCanvas('middle')" title="세로 중앙"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="7" width="12" height="2" rx=".5"/><rect x="4" y="4" width="8" height="8" rx="1" opacity=".7"/></svg></button>
+        <button onclick="alignCanvas('bottom')" title="아래쪽 끝"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="12" width="12" height="2" rx=".5"/><rect x="4" y="3" width="8" height="8" rx="1"/></svg></button>
+      </div>
+      <button class="btn btn-ghost btn-full mt8" onclick="alignCanvas('center-all')">정가운데로</button>
+    </div>
+  </section>
+
+  <!-- STYLE -->
+  <section class="tab-pane" data-pane="style" hidden>
+    <div class="card">
+      <div class="card-hd">스타일 프리셋</div>
+      <div class="preset-grid" id="presetGrid"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd">글자 색</div>
+      <div class="color-row" data-colors="color" data-list="#24193a,#ffffff,#ff5c8a,#ffd43b,#4dabf7,#51cf66,#8b5cf6"></div>
+      <div class="toggle-row">
+        <span class="toggle-label">그라데이션 채우기</span>
+        <div class="toggle" data-p="useGrad" data-bool></div>
+      </div>
+      <div class="grad-box" id="gradPanel">
+        <canvas id="gradWheel" width="64" height="64" title="드래그로 방향 조절"></canvas>
+        <div class="grow">
+          <div class="grad-preview" id="gradPreview"></div>
+          <div class="row"><input type="color" data-p="g1"><span style="color:var(--text3)">→</span><input type="color" data-p="g2"><span class="hint" style="margin:0 0 0 4px">원을 드래그해 방향 조절</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd">외곽선</div>
+      <div class="seg" data-p="outline">
+        <button data-v="none">없음</button><button data-v="line">기본선</button><button data-v="double">이중선</button><button data-v="glow">네온</button>
+      </div>
+      <div class="sub-hd" id="strokeLabel">선 색</div>
+      <div class="color-row" data-colors="strokeColor" data-list="#ffffff,#24193a,#ff5c8a,#ffd43b,#4dabf7,#8b5cf6"></div>
+      <div id="doubleRow">
+        <div class="sub-hd">바깥 선 색</div>
+        <div class="color-row" data-colors="strokeColor2" data-list="#24193a,#ffffff,#ff5c8a,#ffd43b,#4dabf7,#8b5cf6"></div>
+      </div>
+      <div class="field"><div class="flabel">두께 / 세기 <span data-show="strokeWidth"></span></div><input type="range" data-p="strokeWidth" min="0" max="40"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd">말풍선 · 라벨 배경</div>
+      <div class="seg" data-p="bubble">
+        <button data-v="none">없음</button><button data-v="box">박스</button><button data-v="pill">알약</button><button data-v="bubble">말풍선</button>
+      </div>
+      <div id="bubbleOpts">
+        <div class="sub-hd">채우기</div>
+        <div class="color-row" data-colors="bubbleColor" data-list="#ffffff,#24193a,#ffe3ec,#fff4c2,#e7f5ff,#ff5c8a"></div>
+        <div class="sub-hd">테두리</div>
+        <div class="color-row" data-colors="bubbleBorder" data-list="#24193a,#ffffff,#ff5c8a,#8b5cf6,#adb5bd"></div>
+        <div class="field"><div class="flabel">여백 <span data-show="bubblePad"></span></div><input type="range" data-p="bubblePad" min="4" max="70"></div>
+        <div class="field"><div class="flabel">테두리 두께 <span data-show="bubbleBorderW"></span></div><input type="range" data-p="bubbleBorderW" min="0" max="14"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd">그림자</div>
+      <div class="color-row" data-colors="shadowColor" data-list="#000000,#24193a,#ffffff,#ff5c8a,#8b5cf6"></div>
+      <div class="field"><div class="flabel">블러 <span data-show="shadowBlur"></span></div><input type="range" data-p="shadowBlur" min="0" max="50"></div>
+      <div class="field"><div class="flabel">X 오프셋 <span data-show="shadowX"></span></div><input type="range" data-p="shadowX" min="-30" max="30"></div>
+      <div class="field"><div class="flabel">Y 오프셋 <span data-show="shadowY"></span></div><input type="range" data-p="shadowY" min="-30" max="30"></div>
+    </div>
+
+    <div class="card">
+      <div class="field" style="margin-top:0"><div class="flabel">전체 투명도 <span data-show="opacity"></span></div><input type="range" data-p="opacity" min="0" max="100"></div>
+    </div>
+  </section>
+
+  <!-- MOTION -->
+  <section class="tab-pane" data-pane="motion" hidden>
+    <div class="card">
+      <div class="card-hd">레이어 움직임</div>
+      <div class="seg anim-grid" data-p="anim" id="animGrid"></div>
+      <div id="animOpts">
+        <div class="field">
+          <div class="flabel">루프당 반복</div>
+          <div class="seg" data-p="animCycles"><button data-v="1">1회</button><button data-v="2">2회</button><button data-v="3">3회</button><button data-v="4">4회</button></div>
+        </div>
+        <div class="field"><div class="flabel">세기 <span data-show="animPower"></span></div><input type="range" data-p="animPower" min="10" max="100" step="5"></div>
+        <div class="field"><div class="flabel">시작 타이밍 <span data-show="animDelay"></span></div><input type="range" data-p="animDelay" min="0" max="95" step="5"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hd">전체 루프</div>
+      <div class="field" style="margin-top:0"><div class="flabel">루프 길이 <span id="loopV"></span></div><input type="range" id="loopRange" min="0.5" max="4" step="0.1"></div>
+      <p class="hint">모든 움직임이 이 길이 안에서 끊김 없이 반복돼요. 레이어마다 <b>시작 타이밍</b>을 다르게 주면 차례대로 움직여요.</p>
+    </div>
+  </section>
+
+  <!-- LAYERS -->
+  <section class="tab-pane" data-pane="layers" hidden>
+    <div class="card">
+      <div class="card-hd">레이어 <span class="count-pill" id="layerCount">0</span></div>
+      <div id="layerList"></div>
+      <button class="btn btn-ghost btn-full mt8" onclick="addTextLayer('새 텍스트',{},true)">텍스트 추가</button>
+    </div>
+  </section>
+</aside>
+</div>
+
+<!-- ═════════ Export modal ═════════ -->
+<div class="modal" id="exportModal" hidden onclick="if(event.target===this)closeModal('exportModal')">
+  <div class="modal-card">
+    <div class="modal-hd">
+      <div><div class="modal-title">내보내기</div><div class="modal-sub">정지 이미지(PNG) 또는 움직이는 GIF로 저장해요</div></div>
+      <button class="icon-btn" onclick="closeModal('exportModal')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="modal-bd">
+      <div class="field"><div class="flabel">형식</div>
+        <div class="seg" data-ex="fmt"><button data-v="png">PNG</button><button data-v="gif">GIF</button></div>
+      </div>
+      <div class="field"><div class="flabel">크기</div>
+        <div class="seg" data-ex="size"><button data-v="600">600px</button><button data-v="360">360px</button><button data-v="240">240px</button><button data-v="160">160px</button></div>
+      </div>
+      <div id="gifOpts">
+        <div class="field"><div class="flabel">프레임 속도</div>
+          <div class="seg" data-ex="fps"><button data-v="10">10fps</button><button data-v="15">15fps</button><button data-v="20">20fps</button><button data-v="25">25fps</button></div>
+        </div>
+        <div class="field" id="matteField">
+          <div class="flabel">투명 배경 가장자리 색</div>
+          <div class="row"><input type="color" id="matteColor" value="#ffffff"><span class="hint" style="margin:0">GIF는 반투명을 못 써서, 글자 가장자리를 이 색에 맞춰 다듬어요. 올릴 곳 배경색과 비슷하게 고르세요.</span></div>
+        </div>
+      </div>
+      <div class="field"><div class="flabel">파일 이름</div><input type="text" id="exName"></div>
+      <div class="ex-info" id="exInfo"></div>
+      <div class="progress" id="exProg" hidden><div></div></div>
+      <div class="ex-preview" id="exPreview" hidden>
+        <img id="exImg" alt="미리보기">
+        <div><div class="ep-name" id="exResName"></div><div class="ep-sub" id="exResSize"></div><a id="exResLink" href="#" download>다시 다운로드 ↓</a></div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" id="copyBtn" onclick="copyPng()">클립보드 복사</button>
+      <button class="btn btn-grad" id="exGo" onclick="runExport()">저장하기</button>
+    </div>
   </div>
 </div>
 
-<div class="right-panel">
-  <div class="tab-bar">
-    <button class="tab-btn active" onclick="switchTab('text',this)">텍스트</button>
-    <button class="tab-btn" onclick="switchTab('style',this)">스타일</button>
-    <button class="tab-btn" onclick="switchTab('layers',this)">레이어</button>
-  </div>
-
-  <div id="tab-text" class="tab-content">
-    <div class="section">
-      <div class="field">
-        <div class="field-label">내용 (한 줄 입력)</div>
-        <div style="display:flex; gap:8px;">
-          <input type="text" id="txtInput" placeholder="텍스트 입력" oninput="syncLayer()">
-          <button class="btn btn-surface" onclick="addNewTextLayer()" style="padding: 0 16px;">+ 추가</button>
-        </div>
-      </div>
-      <div class="field">
-        <div class="field-label">폰트</div>
-        <select id="fontSel" onchange="syncLayer()">
-          <optgroup label="고딕/명조">
-            <option value="'Noto Sans KR',sans-serif">노토산스 (기본)</option>
-            <option value="'Do Hyeon','Noto Sans KR',sans-serif">도현</option>
-            <option value="'Gugi','Noto Sans KR',cursive">구기</option>
-          </optgroup>
-          <optgroup label="손글씨/포인트">
-            <option value="'Jua','Noto Sans KR',sans-serif">주아</option>
-            <option value="'Hi Melody','Noto Sans KR',cursive">하이멜로디</option>
-            <option value="'Nanum Pen Script','Noto Sans KR',cursive">나눔펜체</option>
-            <option value="'East Sea Dokdo','Noto Sans KR',cursive">동해독도</option>
-          </optgroup>
-          <optgroup label="English">
-            <option value="'Fredoka One','Noto Sans KR',cursive">Fredoka</option>
-            <option value="'Pacifico','Noto Sans KR',cursive">Pacifico</option>
-            <option value="'Lilita One','Noto Sans KR',cursive">Lilita</option>
-          </optgroup>
-        </select>
-      </div>
-
-      <div class="field">
-        <div class="field-label">레이어 위치 정렬 (캔버스 기준)</div>
-        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:4px;background:var(--surface2);padding:4px;border-radius:10px;">
-          <button class="outline-opt" onclick="alignCanvas('left')" title="왼쪽 끝 맞춤">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="2" width="2" height="12" rx="0.5"/><rect x="5" y="4" width="8" height="8" rx="1"/></svg>
-          </button>
-          <button class="outline-opt" onclick="alignCanvas('center')" title="가로 중앙 맞춤">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="7" y="2" width="2" height="12" rx="0.5"/><rect x="4" y="4" width="8" height="8" rx="1"/></svg>
-          </button>
-          <button class="outline-opt" onclick="alignCanvas('right')" title="오른쪽 끝 맞춤">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="12" y="2" width="2" height="12" rx="0.5"/><rect x="3" y="4" width="8" height="8" rx="1"/></svg>
-          </button>
-          <button class="outline-opt" style="border-left: 1px solid var(--border2); border-radius: 0;" onclick="alignCanvas('top')" title="위쪽 끝 맞춤">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="2" width="12" height="2" rx="0.5"/><rect x="4" y="5" width="8" height="8" rx="1"/></svg>
-          </button>
-          <button class="outline-opt" onclick="alignCanvas('middle')" title="세로 중앙 맞춤">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="7" width="12" height="2" rx="0.5"/><rect x="4" y="4" width="8" height="8" rx="1"/></svg>
-          </button>
-          <button class="outline-opt" onclick="alignCanvas('bottom')" title="아래쪽 끝 맞춤">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="12" width="12" height="2" rx="0.5"/><rect x="4" y="3" width="8" height="8" rx="1"/></svg>
-          </button>
-        </div>
-        <button class="outline-opt" style="width:100%; display:flex; align-items:center; justify-content:center; gap:6px; padding:8px 0; background:var(--surface2); border-radius:10px;" onclick="alignCanvas('center-all')" title="정가운데 맞춤">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
-            <circle cx="8" cy="8" r="3" fill="currentColor" stroke="none"/><path d="M8 1v3M8 12v3M1 8h3M12 8h3"/>
-          </svg>
-          가로·세로 정가운데 맞춤
-        </button>
-      </div>
-
-      <div class="field">
-        <div class="field-label">글자 크기 <span id="fsV">60</span></div>
-        <input type="range" id="fsRange" min="10" max="400" value="60" oninput="document.getElementById('fsV').textContent=this.value;syncLayer()">
-      </div>
-      
-      <div class="field">
-        <div class="field-label">자간(글자간격) <span id="lsV">0</span></div>
-        <input type="range" id="lsRange" min="-10" max="50" value="0" oninput="document.getElementById('lsV').textContent=this.value;syncLayer()">
-      </div>
-      
-      <div class="divider"></div>
-      
-      <div class="field">
-        <div class="field-label">회전 각도 <span id="rotV">0</span>°</div>
-        <input type="range" id="rotRange" min="-180" max="180" value="0" oninput="document.getElementById('rotV').textContent=this.value;syncLayer()">
-      </div>
+<!-- ═════════ OOC modal ═════════ -->
+<div class="modal" id="oocModal" hidden onclick="if(event.target===this)closeModal('oocModal')">
+  <div class="modal-card">
+    <div class="modal-hd">
+      <div><div class="modal-title">OOC</div><div class="modal-sub">복사해서 AI 채팅방에 붙여넣어 쓰세요</div></div>
+      <button class="icon-btn" onclick="closeModal('oocModal')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
+    <div class="modal-bd" id="oocList"></div>
   </div>
-
-  <div id="tab-style" class="tab-content" style="display:none">
-    <div class="section">
-      <div class="field">
-        <div class="field-label">폰트 스타일</div>
-        <div class="outline-picker" style="margin-bottom:16px">
-          <button class="outline-opt active" id="ts-normal" onclick="setTxtStyle('normal',this)">기본</button>
-          <button class="outline-opt" id="ts-italic" onclick="setTxtStyle('italic',this)">이탤릭</button>
-          <button class="outline-opt" id="ts-bold" onclick="setTxtStyle('bold',this)">볼드</button>
-        </div>
-      </div>
-      <div class="field">
-        <div class="field-label">전체 투명도 <span id="opV">100</span>%</div>
-        <input type="range" id="opRange" min="0" max="100" value="100" oninput="document.getElementById('opV').textContent=this.value;syncLayer()">
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="field">
-        <div class="field-label">글자 색상</div>
-        <div class="color-row">
-          <input type="color" id="txtColor" value="#111827" onchange="syncLayer()">
-          <div class="color-dot" style="background:#111827" onclick="setColor('txtColor','#111827')"></div>
-          <div class="color-dot" style="background:#ffffff" onclick="setColor('txtColor','#ffffff')"></div>
-          <div class="color-dot" style="background:#ef4444" onclick="setColor('txtColor','#ef4444')"></div>
-          <div class="color-dot" style="background:#3b82f6" onclick="setColor('txtColor','#3b82f6')"></div>
-          <div class="color-dot" style="background:#10b981" onclick="setColor('txtColor','#10b981')"></div>
-          <div class="color-dot" style="background:#f59e0b" onclick="setColor('txtColor','#f59e0b')"></div>
-        </div>
-      </div>
-
-      <div class="field">
-        <div class="field-label">외곽선 스타일</div>
-        <div class="outline-picker" style="margin-bottom:12px">
-          <button class="outline-opt" onclick="setOutline('none',this)">없음</button>
-          <button class="outline-opt active" onclick="setOutline('line',this)">기본선</button>
-          <button class="outline-opt" onclick="setOutline('double',this)">이중선</button>
-          <button class="outline-opt" onclick="setOutline('glow',this)">네온효과</button>
-        </div>
-        <div class="color-row" style="margin-bottom:12px">
-          <input type="color" id="strokeColor" value="#ffffff" onchange="syncLayer()">
-          <div class="color-dot" style="background:#ffffff" onclick="setColor('strokeColor','#ffffff')"></div>
-          <div class="color-dot" style="background:#111827" onclick="setColor('strokeColor','#111827')"></div>
-          <div class="color-dot" style="background:#ef4444" onclick="setColor('strokeColor','#ef4444')"></div>
-          <div class="color-dot" style="background:#3b82f6" onclick="setColor('strokeColor','#3b82f6')"></div>
-        </div>
-        <div class="field-label">두께 <span id="swV">6</span></div>
-        <input type="range" id="swRange" min="0" max="40" value="6" oninput="document.getElementById('swV').textContent=this.value;syncLayer()">
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="field">
-        <div class="toggle-row">
-          <span class="toggle-label">그라데이션 채우기</span>
-          <div class="toggle" id="gradToggle" onclick="toggleGrad()"></div>
-        </div>
-        <div id="gradPanel" style="display:none">
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-            <div style="position:relative;flex-shrink:0;">
-              <canvas id="gradWheel" width="64" height="64" style="cursor:crosshair;border-radius:50%;border:1px solid var(--border);" title="드래그로 방향 조절"></canvas>
-            </div>
-            <div style="flex:1;">
-              <div class="grad-preview" id="gradPreview" style="margin-bottom:10px;"></div>
-              <div style="display:flex;gap:8px;align-items:center;">
-                <input type="color" id="g1" value="#4f46e5" onchange="updateGradPreview();syncLayer()">
-                <span style="color:var(--text3);font-size:18px;">→</span>
-                <input type="color" id="g2" value="#ec4899" onchange="updateGradPreview();syncLayer()">
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="field">
-        <div class="field-label">그림자 색상</div>
-        <div class="color-row">
-          <input type="color" id="shadowColor" value="#000000" onchange="syncLayer()">
-          <div class="color-dot" style="background:#000000" onclick="setColor('shadowColor','#000000')"></div>
-          <div class="color-dot" style="background:#ffffff" onclick="setColor('shadowColor','#ffffff')"></div>
-          <div class="color-dot" style="background:#4f46e5" onclick="setColor('shadowColor','#4f46e5')"></div>
-          <div class="color-dot" style="background:#ef4444" onclick="setColor('shadowColor','#ef4444')"></div>
-        </div>
-      </div>
-      <div class="field">
-        <div class="field-label">그림자 블러 <span id="sbV">0</span></div>
-        <input type="range" id="sbRange" min="0" max="50" value="0" oninput="document.getElementById('sbV').textContent=this.value;syncLayer()">
-      </div>
-      <div class="field">
-        <div class="field-label">그림자 X 오프셋 <span id="sxV">0</span></div>
-        <input type="range" id="sxRange" min="-30" max="30" value="0" oninput="document.getElementById('sxV').textContent=this.value;syncLayer()">
-      </div>
-      <div class="field" style="margin-bottom:0">
-        <div class="field-label">그림자 Y 오프셋 <span id="syV">0</span></div>
-        <input type="range" id="syRange" min="-30" max="30" value="0" oninput="document.getElementById('syV').textContent=this.value;syncLayer()">
-      </div>
-    </div>
-  </div>
-
-  <div id="tab-layers" class="tab-content" style="display:none">
-    <div class="section">
-      <div id="layerList">
-        <div class="empty-state">레이어가 없습니다.<br>텍스트를 추가해주세요.</div>
-      </div>
-    </div>
-  </div>
-
-</div>
 </div>
 
+<div class="toast" id="toast"></div>
+
+<!-- ═════════ GIF encoder (의존성 없음) ═════════ -->
 <script>
-// ── State ──
-const canvas = document.getElementById('mainCanvas');
-const ctx = canvas.getContext('2d');
-let bgImage = null;
-let bgColor = 'transparent';
-let layers = [];
-let selId = null;
-let nextId = 1;
+const nextTick = () => new Promise(r => setTimeout(r, 0));
 
-// Image Pan & Zoom State
-let baseScale = 1;
-let bgScale = 1;
-let bgPanX = 0;
-let bgPanY = 0;
-
-let dragging = false, dox = 0, doy = 0;
-let draggingBg = false, bgDox = 0, bgDoy = 0;
-let resizing = false, resizeStartX = 0, resizeStartY = 0, resizeStartFontSize = 0;
-let rotating = false, rotateStartAngle = 0, rotateStartRot = 0;
-
-let outlineStyle = 'line';
-let txtStyleMode = 'normal';
-let gradOn = false;
-let gradDir = 0;
-let bgLocked = false;
-
-// ── Render ──
-function render() {
-  const W = canvas.width, H = canvas.height;
-  ctx.clearRect(0, 0, W, H);
-
-  // 'transparent'이면 칠하지 않아 캔버스가 비치고(체커보드), 저장 시 투명 PNG가 됩니다.
-  if (bgColor !== 'transparent') {
-    ctx.fillStyle = bgColor;
-    ctx.fillRect(0, 0, W, H);
-  }
-  
-  if (bgImage) {
-    ctx.save();
-    ctx.drawImage(bgImage, bgPanX, bgPanY, bgImage.width * bgScale, bgImage.height * bgScale);
-    ctx.restore();
-  }
-  
-  layers.forEach(l => drawLayer(l));
-  
-  const sel = layers.find(l => l.id === selId);
-  if (sel) drawSelRing(sel);
+class ByteOut {
+  constructor(){ this.buf = new Uint8Array(1 << 20); this.n = 0; }
+  grow(k){ if (this.n + k > this.buf.length){ let s = this.buf.length * 2; while (s < this.n + k) s *= 2; const nb = new Uint8Array(s); nb.set(this.buf); this.buf = nb; } }
+  byte(v){ this.grow(1); this.buf[this.n++] = v & 255; }
+  u16(v){ this.byte(v & 255); this.byte((v >> 8) & 255); }
+  str(s){ for (let i = 0; i < s.length; i++) this.byte(s.charCodeAt(i)); }
+  arr(a, from, len){ this.grow(len); for (let i = 0; i < len; i++) this.buf[this.n++] = a[from + i]; }
+  done(){ return this.buf.slice(0, this.n); }
 }
 
-// 🌟 폰트 굵기 버그 수정 🌟
-function makeFont(l) {
-  // 불러오지 않은 굵기(800 등)를 요청하면 캔버스가 제대로 폰트를 인식하지 못합니다.
-  // Google Fonts에서 요청한 굵기(700)로 통일시킵니다.
-  const w = l.style === 'bold' ? '700' : '400';
-  const i = l.style === 'italic' ? 'italic ' : '';
-  return `${i}${w} ${l.fontSize}px ${l.font}`;
+const LZW_CODE = new Int16Array(1 << 20), LZW_STAMP = new Int32Array(1 << 20);
+let lzwGen = 0;
+function lzwEncode(idx){
+  const clear = 256, eoi = 257;
+  let codeSize = 9, next = 258; lzwGen++;
+  let cur = 0, bits = 0; const out = [];
+  const emit = c => { cur |= c << bits; bits += codeSize; while (bits >= 8){ out.push(cur & 255); cur >>>= 8; bits -= 8; } };
+  emit(clear);
+  let prefix = idx[0];
+  for (let i = 1; i < idx.length; i++){
+    const k = idx[i], key = (prefix << 8) | k;
+    if (LZW_STAMP[key] === lzwGen){ prefix = LZW_CODE[key]; continue; }
+    emit(prefix);
+    if (next === 4096){ emit(clear); next = 258; codeSize = 9; lzwGen++; }
+    else { if (next >= (1 << codeSize)) codeSize++; LZW_CODE[key] = next++; LZW_STAMP[key] = lzwGen; }
+    prefix = k;
+  }
+  emit(prefix); emit(eoi);
+  if (bits > 0) out.push(cur & 255);
+  return out;
 }
 
-function drawLayer(l, isExport = false, targetCtx = ctx) {
-  targetCtx.save();
-  targetCtx.globalAlpha = l.opacity;
-  targetCtx.translate(l.x, l.y);
-  targetCtx.rotate(l.rotate * Math.PI / 180);
-  targetCtx.font = makeFont(l);
-  targetCtx.textAlign = 'center';
-  targetCtx.textBaseline = 'middle';
-  
-  if ('letterSpacing' in targetCtx) {
-    targetCtx.letterSpacing = l.letterSpacing + "px";
+function medianCut(hist, sums, max){
+  const bins = [];
+  for (let i = 0; i < 32768; i++) if (hist[i]) bins.push(i);
+  if (!bins.length) return [[0,0,0]];
+  const ch = (b, c) => c === 0 ? (b >> 10) & 31 : c === 1 ? (b >> 5) & 31 : b & 31;
+  const mk = arr => {
+    const mn = [31,31,31], mx = [0,0,0]; let cnt = 0;
+    for (const b of arr){ for (let c = 0; c < 3; c++){ const v = ch(b, c); if (v < mn[c]) mn[c] = v; if (v > mx[c]) mx[c] = v; } cnt += hist[b]; }
+    const rg = [mx[0]-mn[0], mx[1]-mn[1], mx[2]-mn[2]]; const axis = rg.indexOf(Math.max(...rg));
+    return { arr, cnt, axis, range: rg[axis] };
+  };
+  const boxes = [mk(bins)];
+  while (boxes.length < max){
+    let bi = -1, best = 0;
+    for (let i = 0; i < boxes.length; i++){ const b = boxes[i]; if (b.arr.length < 2 || !b.range) continue; const sc = b.range * Math.sqrt(b.cnt); if (sc > best){ best = sc; bi = i; } }
+    if (bi < 0) break;
+    const b = boxes[bi];
+    b.arr.sort((x, y) => ch(x, b.axis) - ch(y, b.axis));
+    const half = b.cnt / 2; let acc = 0, cut = b.arr.length - 1;
+    for (let i = 0; i < b.arr.length - 1; i++){ acc += hist[b.arr[i]]; if (acc >= half){ cut = i + 1; break; } }
+    boxes.splice(bi, 1, mk(b.arr.slice(0, cut)), mk(b.arr.slice(cut)));
   }
+  return boxes.map(b => {
+    let r = 0, g = 0, bl = 0;
+    for (const x of b.arr){ r += sums[x*3]; g += sums[x*3+1]; bl += sums[x*3+2]; }
+    return [Math.round(r / b.cnt), Math.round(g / b.cnt), Math.round(bl / b.cnt)];
+  });
+}
 
-  // ── 외곽선/이중선 처리 (fill 이전) ──
-  if (l.outlineStyle === 'double') {
-    targetCtx.shadowBlur = 0; targetCtx.shadowColor = 'transparent';
-    targetCtx.strokeStyle = l.color;
-    targetCtx.lineWidth = l.strokeWidth + 12;
-    targetCtx.lineJoin = 'round';
-    targetCtx.strokeText(l.text, 0, 0);
+function nearestColor(pal, r, g, b){
+  let bi = 0, bd = Infinity;
+  for (let i = 0; i < pal.length; i++){
+    const p = pal[i], dr = p[0]-r, dg = p[1]-g, db = p[2]-b;
+    const d = dr*dr*2 + dg*dg*4 + db*db*3;
+    if (d < bd){ bd = d; bi = i; if (!d) break; }
   }
+  return bi;
+}
 
-  if (l.outlineStyle !== 'none' && l.outlineStyle !== 'glow' && l.strokeWidth > 0) {
-    targetCtx.shadowBlur = 0; targetCtx.shadowColor = 'transparent';
-    targetCtx.strokeStyle = l.strokeColor;
-    targetCtx.lineWidth = l.strokeWidth;
-    targetCtx.lineJoin = 'round';
-    targetCtx.strokeText(l.text, 0, 0);
-  }
-
-  // ── 그림자 설정 (fill 이전) ──
-  if (l.shadowBlur > 0 || l.shadowOffsetX !== 0 || l.shadowOffsetY !== 0) {
-    targetCtx.shadowColor = l.shadowColor;
-    targetCtx.shadowBlur = l.shadowBlur;
-    targetCtx.shadowOffsetX = l.shadowOffsetX;
-    targetCtx.shadowOffsetY = l.shadowOffsetY;
-  } else {
-    targetCtx.shadowBlur = 0; targetCtx.shadowColor = 'transparent';
-    targetCtx.shadowOffsetX = 0; targetCtx.shadowOffsetY = 0;
-  }
-
-  // ── 채우기 색상(단색 or 그라데이션) 결정 ──
-  let fillStyle;
-  if (l.useGrad && l.text.trim() !== '') {
-    const m = targetCtx.measureText(l.text);
-    const width = m.width || 100;
-    const height = l.fontSize;
-    const rad = ((l.gradDir || 0) * Math.PI) / 180;
-    const cos = Math.cos(rad), sin = Math.sin(rad);
-    const r = (Math.abs(cos) * width + Math.abs(sin) * height) / 2;
-    const grd = targetCtx.createLinearGradient(-cos * r, -sin * r, cos * r, sin * r);
-    grd.addColorStop(0, l.g1);
-    grd.addColorStop(1, l.g2);
-    fillStyle = grd;
-  } else {
-    fillStyle = l.color;
-  }
-
-  // ── 네온(glow) 효과: 그림자/그라데이션과 함께 동작 ──
-  if (l.outlineStyle === 'glow') {
-    // 글로우 레이어들 (그림자 위에 겹쳐 그림)
-    const savedShadow = {
-      color: targetCtx.shadowColor,
-      blur: targetCtx.shadowBlur,
-      offX: targetCtx.shadowOffsetX,
-      offY: targetCtx.shadowOffsetY,
-    };
-    for (let g = 3; g >= 0; g--) {
-      targetCtx.shadowColor = l.strokeColor;
-      targetCtx.shadowBlur = 8 + g * 10;
-      targetCtx.shadowOffsetX = 0;
-      targetCtx.shadowOffsetY = 0;
-      targetCtx.fillStyle = fillStyle;
-      targetCtx.fillText(l.text, 0, 0);
+/** frames: ImageData-like {data} 배열 · delay: 1/100초 · matte: [r,g,b] */
+async function encodeGIF(frames, w, h, delay, matte, onProg){
+  const [mr, mg, mb] = matte;
+  const hist = new Uint32Array(32768), sums = new Float64Array(32768 * 3);
+  let anyT = false;
+  for (const fr of frames){
+    const d = fr.data;
+    for (let i = 0; i < d.length; i += 4){
+      const a = d[i+3];
+      if (a < 110){ d[i+3] = 0; anyT = true; continue; }
+      if (a < 255){ const t = a / 255; d[i] = d[i]*t + mr*(1-t); d[i+1] = d[i+1]*t + mg*(1-t); d[i+2] = d[i+2]*t + mb*(1-t); d[i+3] = 255; }
+      const bin = ((d[i] >> 3) << 10) | ((d[i+1] >> 3) << 5) | (d[i+2] >> 3);
+      hist[bin]++; sums[bin*3] += d[i]; sums[bin*3+1] += d[i+1]; sums[bin*3+2] += d[i+2];
     }
-    // 그림자 복원 후 최종 fill
-    targetCtx.shadowColor = savedShadow.color;
-    targetCtx.shadowBlur = savedShadow.blur;
-    targetCtx.shadowOffsetX = savedShadow.offX;
-    targetCtx.shadowOffsetY = savedShadow.offY;
   }
-
-  // ── 최종 텍스트 fill ──
-  targetCtx.fillStyle = fillStyle;
-  targetCtx.fillText(l.text, 0, 0);
-  targetCtx.restore();
-}
-
-function getSelHandles(l) {
-  ctx.save();
-  ctx.font = makeFont(l);
-  if ('letterSpacing' in ctx) ctx.letterSpacing = l.letterSpacing + 'px';
-  const tw = ctx.measureText(l.text).width;
-  ctx.restore();
-  const hw = tw / 2 + 20;
-  const hh = l.fontSize / 2 + 16;
-  return {
-    hw, hh,
-    corners: [
-      { id: 'tl', lx: -hw, ly: -hh },
-      { id: 'tr', lx:  hw, ly: -hh },
-      { id: 'bl', lx: -hw, ly:  hh },
-      { id: 'br', lx:  hw, ly:  hh },
-    ],
-    rotate: { id: 'rot', lx: 0, ly: -hh - 28 },
-  };
-}
-
-function localToWorld(l, lx, ly) {
-  const rad = l.rotate * Math.PI / 180;
-  return {
-    x: l.x + lx * Math.cos(rad) - ly * Math.sin(rad),
-    y: l.y + lx * Math.sin(rad) + ly * Math.cos(rad),
-  };
-}
-
-function drawSelRing(l) {
-  const { hw, hh, corners, rotate: rotHandle } = getSelHandles(l);
-  ctx.save();
-  ctx.translate(l.x, l.y);
-  ctx.rotate(l.rotate * Math.PI / 180);
-
-  ctx.strokeStyle = 'rgba(79,70,229,0.85)';
-  ctx.lineWidth = 1.5;
-  ctx.setLineDash([6, 4]);
-  ctx.strokeRect(-hw, -hh, hw * 2, hh * 2);
-  ctx.setLineDash([]);
-
-  ctx.beginPath();
-  ctx.moveTo(0, -hh);
-  ctx.lineTo(0, -hh - 28);
-  ctx.strokeStyle = 'rgba(79,70,229,0.6)';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-
-  ctx.restore();
-
-  for (const c of corners) {
-    const { x, y } = localToWorld(l, c.lx, c.ly);
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(l.rotate * Math.PI / 180);
-    ctx.fillStyle = '#fff';
-    ctx.strokeStyle = 'rgba(79,70,229,0.9)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.rect(-6, -6, 12, 12);
-    ctx.fill(); ctx.stroke();
-    ctx.restore();
+  const pal = medianCut(hist, sums, 255);
+  const out = new ByteOut();
+  out.str('GIF89a'); out.u16(w); out.u16(h); out.byte(0xF7); out.byte(0); out.byte(0);
+  out.byte(mr); out.byte(mg); out.byte(mb);                       // 0번 = 투명용
+  for (let i = 0; i < 255; i++){ const c = pal[i] || [0,0,0]; out.byte(c[0]); out.byte(c[1]); out.byte(c[2]); }
+  if (frames.length > 1){ out.byte(0x21); out.byte(0xFF); out.byte(11); out.str('NETSCAPE2.0'); out.byte(3); out.byte(1); out.u16(0); out.byte(0); }
+  const map = new Int16Array(32768).fill(-1);
+  const idx = new Uint8Array(w * h);
+  for (let f = 0; f < frames.length; f++){
+    const d = frames[f].data;
+    for (let i = 0, j = 0; j < idx.length; i += 4, j++){
+      if (d[i+3] === 0){ idx[j] = 0; continue; }
+      const bin = ((d[i] >> 3) << 10) | ((d[i+1] >> 3) << 5) | (d[i+2] >> 3);
+      let m = map[bin];
+      if (m < 0){ m = nearestColor(pal, d[i], d[i+1], d[i+2]) + 1; map[bin] = m; }
+      idx[j] = m;
+    }
+    out.byte(0x21); out.byte(0xF9); out.byte(4);
+    out.byte(((anyT ? 2 : 1) << 2) | (anyT ? 1 : 0)); out.u16(delay); out.byte(0); out.byte(0);
+    out.byte(0x2C); out.u16(0); out.u16(0); out.u16(w); out.u16(h); out.byte(0);
+    out.byte(8);
+    const data = lzwEncode(idx);
+    for (let k = 0; k < data.length; k += 255){ const n = Math.min(255, data.length - k); out.byte(n); out.arr(data, k, n); }
+    out.byte(0);
+    if (onProg) onProg((f + 1) / frames.length);
+    await nextTick();
   }
-
-  const rp = localToWorld(l, rotHandle.lx, rotHandle.ly);
-  ctx.beginPath();
-  ctx.arc(rp.x, rp.y, 8, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(79,70,229,0.9)';
-  ctx.fill();
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-  
-  ctx.save();
-  ctx.translate(rp.x, rp.y);
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.arc(0, 0, 4, -Math.PI * 0.8, Math.PI * 0.8);
-  ctx.stroke();
-  ctx.restore();
+  out.byte(0x3B);
+  return out.done();
 }
+</script>
 
-// ── Layer ops ──
-function newLayer(overrides={}) {
-  return {
-    id: nextId++,
-    text: '새 텍스트', font: "'Noto Sans KR',sans-serif", fontSize: 60,
-    letterSpacing: 0,
-    x: canvas.width/2, y: canvas.height/2,
-    color: '#111827', strokeColor: '#ffffff', strokeWidth: 6,
-    shadowColor: '#000000', shadowBlur: 0, shadowOffsetX: 0, shadowOffsetY: 0,
-    opacity: 1, rotate: 0,
-    outlineStyle: 'line', style: 'normal',
-    useGrad: false, g1:'#4f46e5', g2:'#ec4899', gradDir: 0,
-    ...overrides
-  };
+<!-- ═════════ App ═════════ -->
+<script>
+const $ = id => document.getElementById(id);
+const W = 600, H = 600;
+const DPR = Math.min(2, window.devicePixelRatio || 1);
+const canvas = $('mainCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = W * DPR; canvas.height = H * DPR;
+const mctx = document.createElement('canvas').getContext('2d');   // 측정용
+
+/* ─────────── 데이터 ─────────── */
+const FONTS = [
+  ['한글', [
+    ["'Noto Sans KR',sans-serif", '노토산스'],
+    ["'Jua','Noto Sans KR',sans-serif", '주아'],
+    ["'Do Hyeon','Noto Sans KR',sans-serif", '도현'],
+    ["'Gugi','Noto Sans KR',cursive", '구기'],
+    ["'Sunflower','Noto Sans KR',sans-serif", '선플라워'],
+    ["'Gaegu','Noto Sans KR',cursive", '개구'],
+    ["'Hi Melody','Noto Sans KR',cursive", '하이멜로디'],
+    ["'Nanum Pen Script','Noto Sans KR',cursive", '나눔펜체'],
+    ["'Nanum Brush Script','Noto Sans KR',cursive", '나눔붓체'],
+    ["'East Sea Dokdo','Noto Sans KR',cursive", '동해독도'],
+  ]],
+  ['English', [
+    ["'Fredoka One','Noto Sans KR',cursive", 'Fredoka'],
+    ["'Pacifico','Noto Sans KR',cursive", 'Pacifico'],
+    ["'Lilita One','Noto Sans KR',cursive", 'Lilita'],
+    ["'Bubblegum Sans','Noto Sans KR',cursive", 'Bubblegum'],
+    ["'Boogaloo','Noto Sans KR',cursive", 'Boogaloo'],
+    ["'Righteous','Noto Sans KR',cursive", 'Righteous'],
+    ["'Comfortaa','Noto Sans KR',cursive", 'Comfortaa'],
+  ]],
+];
+const FONT_NAME = Object.fromEntries(FONTS.flatMap(g => g[1]));
+
+const DEFAULTS = {
+  text:'텍스트 입력', font:"'Jua','Noto Sans KR',sans-serif", fontSize:72, letterSpacing:0, lineHeight:1.15, rotate:0,
+  align:'center', bold:false, italic:false,
+  color:'#24193a', useGrad:false, g1:'#ff7a9c', g2:'#8b5cf6', gradDir:0,
+  outline:'line', strokeColor:'#ffffff', strokeColor2:'#24193a', strokeWidth:14,
+  shadowColor:'#000000', shadowBlur:0, shadowX:0, shadowY:0, opacity:100,
+  bubble:'none', bubbleColor:'#ffffff', bubbleBorder:'#24193a', bubblePad:22, bubbleBorderW:4,
+  anim:'none', animCycles:1, animPower:50, animDelay:0,
+  hidden:false, locked:false,
+};
+const STYLE_KEYS = Object.keys(DEFAULTS).filter(k => !['text','hidden'].includes(k));
+
+const ANIMS = [
+  ['none','없음'],['bounce','통통'],['float','둥실'],['shake','덜덜'],
+  ['pulse','두근'],['heart','심쿵'],['swing','갸웃'],['spin','빙글'],
+  ['blink','깜빡'],['jelly','말랑'],['wave','물결'],['typing','타자'],
+  ['rainbow','무지개'],['pop','뿅'],
+];
+const ANIM_NAME = Object.fromEntries(ANIMS.map(a => [a[0], a[1]]));
+
+
+const PRESETS = [
+  { name:'화이트 스티커', p:{ color:'#1c1c1f', useGrad:false, outline:'line', strokeColor:'#ffffff', strokeWidth:18, shadowColor:'#000000', shadowBlur:14, shadowX:0, shadowY:3, bubble:'none' } },
+  { name:'블랙 라인', p:{ color:'#ffffff', useGrad:false, outline:'line', strokeColor:'#1c1c1f', strokeWidth:14, shadowBlur:0, shadowX:0, shadowY:0, bubble:'none' } },
+  { name:'코랄', p:{ color:'#ff7466', useGrad:false, outline:'double', strokeColor:'#ffffff', strokeColor2:'#ffd3cc', strokeWidth:12, shadowColor:'#ff8f80', shadowBlur:12, shadowX:0, shadowY:3, bubble:'none' } },
+  { name:'파스텔', p:{ useGrad:true, g1:'#ffadc6', g2:'#b5a8ff', gradDir:90, outline:'line', strokeColor:'#ffffff', strokeWidth:14, shadowColor:'#8b7fb8', shadowBlur:10, shadowX:0, shadowY:2, bubble:'none' } },
+  { name:'말풍선', p:{ color:'#1c1c1f', useGrad:false, outline:'none', bubble:'bubble', bubbleColor:'#ffffff', bubbleBorder:'#2b2b2f', bubbleBorderW:3, bubblePad:30, shadowBlur:0, shadowX:0, shadowY:0 } },
+  { name:'블랙 태그', p:{ color:'#ffffff', useGrad:false, outline:'none', bubble:'pill', bubbleColor:'#1c1c1f', bubbleBorder:'#ffffff', bubbleBorderW:0, bubblePad:32, shadowBlur:0, shadowX:0, shadowY:0 } },
+  { name:'크림 라벨', p:{ color:'#7a5a3a', useGrad:false, outline:'none', bubble:'box', bubbleColor:'#fbf1e2', bubbleBorder:'#efdcc2', bubbleBorderW:3, bubblePad:30, shadowBlur:0, shadowX:0, shadowY:0 } },
+  { name:'네온', tile:'#17171a', p:{ color:'#fff6fb', useGrad:false, outline:'glow', strokeColor:'#ff4fa0', strokeWidth:8, shadowBlur:0, shadowX:0, shadowY:0, bubble:'none' } },
+  { name:'손글씨', p:{ font:"'Nanum Pen Script','Noto Sans KR',cursive", color:'#2b2b2f', useGrad:false, outline:'none', shadowBlur:0, shadowX:0, shadowY:0, bubble:'none' } },
+];
+
+const BG_LIST = ['transparent','#ffffff','#fff4c2','#ffe3ec','#ece6ff','#dff5ea','#e7f5ff','#24193a','grad:#ffd1dc:#e0d4ff','grad:#fff1b8:#ffc8dd','grad:#c9f2ff:#e6d8ff'];
+
+/* ▼ OOC 목록 — text 에 내용을 채우면 바로 복사 가능해져요 */
+const OOC_LIST = [
+  { emoji:'', title:'이모티콘 세트', desc:'PC를 캐릭터화한 이모티콘 세트 출력', text:'*[OOC: 이전 RP 중지. 새로운 상황 전개. PC를 캐릭터화한 이모티콘 세트를 출력한다. 기쁨·삐짐·졸림·당황·응석 등 PC가 자주 보이는 감정이나 상태를 기준으로 최소 여섯 종을 설정하고, 각 이모티콘의 표정과 포즈, 어울리는 짧은 문구를 적는다. PC의 성격과 말버릇이 드러나도록 한다. 그 아래에 이미지 생성용 프롬프트로 각 이모티콘의 표정과 동작을 적고, 배경은 흰색으로 지정한다. 영문으로 적되, 외형 태그와 퀄리티 태그는 넣지 않는다.]*' },
+];
+
+/* ─────────── 상태 ─────────── */
+let layers = [], selId = null, nextId = 1;
+let draft = { ...DEFAULTS };
+let bgImage = null, bgColor = 'transparent';
+let baseScale = 1, bgScale = 1, bgPanX = 0, bgPanY = 0, bgLocked = false;
+let loopSec = 1.6, playing = true, snapOn = true, t0 = performance.now();
+let mode = null, start = {}, moved = false, guideX = false, guideY = false, lastTap = 0;
+const exState = { fmt:'png', size:600, fps:20 };
+let exporting = false;
+
+const selLayer = () => layers.find(l => l.id === selId) || null;
+const cur = () => selLayer() || draft;
+const hasAnim = () => layers.some(l => !l.hidden && l.anim && l.anim !== 'none');
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hexRgb = h => { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+
+/* ─────────── 텍스트 측정 ─────────── */
+const SEG = (typeof Intl !== 'undefined' && Intl.Segmenter) ? new Intl.Segmenter('ko', { granularity:'grapheme' }) : null;
+const splitChars = t => SEG ? Array.from(SEG.segment(t), s => s.segment) : Array.from(t);
+const EMOJI_FB = ", 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji'";
+const makeFont = l => `${l.italic ? 'italic ' : ''}${l.bold ? 700 : 400} ${l.fontSize}px ${l.font}${EMOJI_FB}`;
+const wCache = new Map();
+function charW(font, ch){
+  const k = font + '|' + ch; let w = wCache.get(k);
+  if (w === undefined){ mctx.font = font; w = mctx.measureText(ch).width; if (wCache.size > 30000) wCache.clear(); inkCache.clear(); wCache.set(k, w); }
+  return w;
 }
-
-function addNewTextLayer(forceText = null) {
-  const inputEl = document.getElementById('txtInput');
-  const inputText = forceText || inputEl.value.trim() || '새 텍스트';
-  
-  const l = newLayer({
-    text: inputText,
-    font: document.getElementById('fontSel').value,
-    fontSize: parseFloat(document.getElementById('fsRange').value) || 60,
-    letterSpacing: parseFloat(document.getElementById('lsRange').value) || 0,
-    color: document.getElementById('txtColor').value || '#111827',
-    strokeColor: document.getElementById('strokeColor').value || '#ffffff',
-    strokeWidth: parseFloat(document.getElementById('swRange').value) || 6,
-    rotate: parseFloat(document.getElementById('rotRange').value) || 0,
-    opacity: (parseFloat(document.getElementById('opRange').value) || 100) / 100,
-    outlineStyle: outlineStyle,
-    style: txtStyleMode,
-    useGrad: gradOn,
-    g1: document.getElementById('g1').value,
-    g2: document.getElementById('g2').value,
-    gradDir: gradDir,
+function layoutText(l){
+  const font = makeFont(l), ls = +l.letterSpacing || 0;
+  const lines = String(l.text ?? '').split('\n').map(t => {
+    const chars = splitChars(t), ws = chars.map(ch => charW(font, ch));
+    return { chars, ws, w: ws.reduce((a, b) => a + b, 0) + ls * Math.max(0, chars.length - 1) };
   });
-  
+  const lh = l.fontSize * (+l.lineHeight || 1.15);
+  const w = Math.max(l.fontSize * 0.3, ...lines.map(x => x.w));
+  const h = lh * (lines.length - 1) + l.fontSize;
+  const total = lines.reduce((a, x) => a + x.chars.length, 0);
+  // 실제 잉크 기준으로 가운데 맞춤 (폰트마다 위아래·좌우로 쏠리는 것 보정)
+  const ink = inkOffsets(font, lines, ls);
+  return { font, ls, lines, lh, w, h, total, oy: ink.oy };
+}
+const inkCache = new Map();
+function inkOffsets(font, lines, ls){
+  const key = font + '|' + ls + '|' + lines.map(x => x.chars.join('')).join('\n');
+  let r = inkCache.get(key);
+  if (r){ lines.forEach((ln, i) => ln.ox = r.ox[i]); return r; }
+  mctx.font = font; mctx.textBaseline = 'middle'; mctx.textAlign = 'left';
+  let asc = 0, desc = 0, any = false;
+  lines.forEach(ln => {
+    const t = ln.chars.join('');
+    if (!t.trim()){ ln.ox = 0; return; }
+    const m = mctx.measureText(t);
+    const inkL = -m.actualBoundingBoxLeft, inkR = m.actualBoundingBoxRight + ls * Math.max(0, ln.chars.length - 1);
+    ln.ox = ln.w / 2 - (inkL + inkR) / 2;
+    asc = Math.max(asc, m.actualBoundingBoxAscent); desc = Math.max(desc, m.actualBoundingBoxDescent); any = true;
+  });
+  r = { oy: any ? (asc - desc) / 2 : 0, ox: lines.map(x => x.ox || 0) };
+  if (inkCache.size > 3000) inkCache.clear();
+  inkCache.set(key, r);
+  return r;
+}
+function bubblePads(l){ const px = l.bubble !== 'none' ? (+l.bubblePad || 0) : 0; return [px, px * 0.75]; }
+function getBox(l){
+  const L = layoutText(l), [px, py] = bubblePads(l);
+  const sw = l.outline === 'double' ? l.strokeWidth + 5 : l.outline === 'line' ? l.strokeWidth / 2 : 0;
+  return { L, hw: L.w / 2 + px + sw + 8, hh: L.h / 2 + py + sw + 8 };
+}
+
+/* ─────────── 애니메이션 ─────────── */
+const easeOutBack = x => 1 + 2.70158 * Math.pow(x - 1, 3) + 1.70158 * Math.pow(x - 1, 2);
+function animState(l, phase){
+  const s = { dx:0, dy:0, rot:0, sx:1, sy:1, a:1, hue:null, chars:null, wave:0, wp:0 };
+  if (phase == null || !l.anim || l.anim === 'none') return s;
+  const n = +l.animCycles || 1, P = (+l.animPower || 50) / 50, fs = l.fontSize, TAU = Math.PI * 2;
+  const p = (((phase * n + (+l.animDelay || 0) / 100) % 1) + 1) % 1;
+  const sn = Math.sin(TAU * p);
+  switch (l.anim){
+    case 'bounce': { const h = Math.abs(Math.sin(Math.PI * p)); s.dy = -h * fs * 0.4 * P; const q = Math.pow(1 - h, 8) * 0.12 * P; s.sy = 1 - q; s.sx = 1 + q; break; }
+    case 'float':  s.dy = sn * fs * 0.16 * P; s.rot = Math.sin(TAU * p + 1) * 2 * P; break;
+    case 'shake':  s.dx = Math.sin(TAU * p * 5) * fs * 0.05 * P; s.dy = Math.sin(TAU * p * 7) * fs * 0.025 * P; s.rot = Math.sin(TAU * p * 6) * 2.5 * P; break;
+    case 'pulse':  s.sx = s.sy = 1 + 0.12 * P * sn; break;
+    case 'heart':  { const b = p < 0.14 ? Math.sin(Math.PI * p / 0.14) : (p >= 0.22 && p < 0.36) ? 0.75 * Math.sin(Math.PI * (p - 0.22) / 0.14) : 0; s.sx = s.sy = 1 + 0.2 * P * b; break; }
+    case 'swing':  s.rot = sn * 14 * P; break;
+    case 'spin':   s.rot = 360 * p; break;
+    case 'blink':  s.a = 1 - Math.min(0.475, 0.45 * P) * (1 - Math.cos(TAU * p)); break;
+    case 'jelly':  s.sx = 1 + 0.15 * P * sn; s.sy = 1 - 0.15 * P * sn; break;
+    case 'wave':   s.wave = fs * 0.2 * P; s.wp = p; break;
+    case 'typing': { const N = layoutText(l).total; s.chars = Math.min(N, Math.floor(p / 0.75 * (N + 1))); break; }
+    case 'rainbow': s.hue = 360 * p; break;
+    case 'pop':    { const q = Math.min(1, p / 0.3); s.sx = s.sy = Math.max(0.01, q < 1 ? easeOutBack(q) : 1); s.a = Math.min(1, p / 0.08); break; }
+  }
+  return s;
+}
+
+/* ─────────── 그리기 ─────────── */
+function eachGlyph(L, l, st, fn){
+  const n = L.lines.length; let gi = 0;
+  L.lines.forEach((ln, i) => {
+    const y = (i - (n - 1) / 2) * L.lh + (L.oy || 0);
+    let x = l.align === 'left' ? -L.w / 2 : l.align === 'right' ? L.w / 2 - ln.w : -ln.w / 2 + (ln.ox || 0);
+    ln.chars.forEach((ch, j) => {
+      if (st.chars == null || gi < st.chars){
+        const yy = st.wave ? y - Math.sin(2 * Math.PI * (st.wp - gi * 0.09)) * st.wave : y;
+        fn(ch, x, yy);
+      }
+      x += ln.ws[j] + L.ls; gi++;
+    });
+  });
+}
+function bubbleGeom(l, L, ox, oy){
+  const [px, py] = bubblePads(l);
+  const w = L.w + px * 2, h = L.h + py * 2;
+  return { w, h, x: -w / 2 + ox, y: -h / 2 + oy };
+}
+function bubblePath(c, l, L, ox, oy){
+  const { w, h, x, y } = bubbleGeom(l, L, ox, oy);
+  let r = (l.bubble === 'pill' || l.bubble === 'bubble') ? h / 2 : Math.max(12, h * 0.34);
+  r = Math.min(r, h / 2, w / 2);
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.lineTo(x + w - r, y); c.arcTo(x + w, y, x + w, y + r, r);
+  c.lineTo(x + w, y + h - r); c.arcTo(x + w, y + h, x + w - r, y + h, r);
+  c.lineTo(x + r, y + h); c.arcTo(x, y + h, x, y + h - r, r);
+  c.lineTo(x, y + r); c.arcTo(x, y, x + r, y, r);
+  c.closePath();
+}
+function tailPath(c, l, L, ox, oy){
+  const { w, h, x, y } = bubbleGeom(l, L, ox, oy);
+  const tw = Math.max(10, h * 0.26), tx = x + Math.max(h * 0.5, w * 0.3), b = y + h;
+  c.beginPath();
+  c.moveTo(tx - tw * 0.55, b - tw * 0.5);
+  c.quadraticCurveTo(tx - tw * 0.3, b + tw * 0.5, tx - tw * 1.0, b + tw * 0.95);
+  c.quadraticCurveTo(tx + tw * 0.4, b + tw * 0.75, tx + tw * 0.6, b - tw * 0.5);
+  c.closePath();
+}
+function paintBubble(c, l, L, ox, oy, fill, border){
+  const tail = l.bubble === 'bubble';
+  // 테두리를 먼저 굵게 그리고 위에 채우기를 덮어서, 몸통과 꼬리 바깥쪽 테두리만 남김
+  if (l.bubbleBorderW > 0){
+    c.lineWidth = l.bubbleBorderW * 2; c.strokeStyle = border; c.lineJoin = 'round';
+    bubblePath(c, l, L, ox, oy); c.stroke();
+    if (tail){ tailPath(c, l, L, ox, oy); c.stroke(); }
+  }
+  c.fillStyle = fill;
+  bubblePath(c, l, L, ox, oy); c.fill();
+  if (tail){ tailPath(c, l, L, ox, oy); c.fill(); }
+}
+// 모양은 화면 밖에 그리고 그림자만 제자리에 떨어뜨리는 방식 → 겹침/투명도 문제 없음
+function shadowPass(c, draw, color, blur, ox, oy){
+  const m = c.getTransform(), k = Math.hypot(m.a, m.b) || 1, D = 4000;
+  c.save();
+  c.shadowColor = color; c.shadowBlur = blur * k;
+  c.shadowOffsetX = m.a * D + ox * k; c.shadowOffsetY = m.b * D + oy * k;
+  draw(-D, 0);
+  c.restore();
+}
+function silhouette(c, l, L, st, ox, oy){
+  c.fillStyle = '#000'; c.strokeStyle = '#000';
+  if (l.bubble !== 'none'){ paintBubble(c, l, L, ox, oy, '#000', '#000'); c.fillStyle = '#000'; }
+  const sw = l.outline === 'double' ? l.strokeWidth * 2 + 10 * l.fontSize / 72 : l.outline === 'line' ? l.strokeWidth : 0;
+  if (sw > 0){ c.lineWidth = sw; eachGlyph(L, l, st, (ch, x, y) => c.strokeText(ch, x + ox, y + oy)); }
+  eachGlyph(L, l, st, (ch, x, y) => c.fillText(ch, x + ox, y + oy));
+}
+function makeFill(c, l, L, st){
+  if (st.hue != null){
+    const g = c.createLinearGradient(-L.w / 2, 0, L.w / 2, 0);
+    for (let k = 0; k <= 6; k++) g.addColorStop(k / 6, `hsl(${(st.hue + k * 50) % 360},95%,62%)`);
+    return g;
+  }
+  if (l.useGrad){
+    const rad = (l.gradDir || 0) * Math.PI / 180, cs = Math.cos(rad), sn = Math.sin(rad);
+    const r = (Math.abs(cs) * L.w + Math.abs(sn) * L.h) / 2 || 1;
+    const g = c.createLinearGradient(-cs * r, -sn * r, cs * r, sn * r);
+    g.addColorStop(0, l.g1); g.addColorStop(1, l.g2);
+    return g;
+  }
+  return l.color;
+}
+function drawLayerCore(c, l, st){
+  const L = layoutText(l);
+  c.save();
+  c.translate(l.x + st.dx, l.y + st.dy);
+  c.rotate((l.rotate + st.rot) * Math.PI / 180);
+  c.scale(st.sx, st.sy);
+  c.font = L.font; c.textAlign = 'left'; c.textBaseline = 'middle'; c.lineJoin = 'round'; c.lineCap = 'round';
+  const glyphs = op => eachGlyph(L, l, st, op);
+
+  if (l.shadowBlur > 0 || l.shadowX || l.shadowY)
+    shadowPass(c, (ox, oy) => silhouette(c, l, L, st, ox, oy), l.shadowColor, l.shadowBlur, l.shadowX, l.shadowY);
+
+  if (l.bubble !== 'none'){
+    paintBubble(c, l, L, 0, 0, l.bubbleColor, l.bubbleBorder);
+  }
+  const fill = makeFill(c, l, L, st);
+  if (l.outline === 'glow'){
+    const k = 0.5 + l.strokeWidth / 12;
+    for (let g = 3; g >= 0; g--)
+      shadowPass(c, (ox, oy) => { c.fillStyle = '#000'; glyphs((ch, x, y) => c.fillText(ch, x + ox, y + oy)); }, l.strokeColor, (8 + g * 10) * k, 0, 0);
+  }
+  if (l.outline === 'double' && l.strokeWidth > 0){
+    c.strokeStyle = l.strokeColor2; c.lineWidth = l.strokeWidth * 2 + 10 * l.fontSize / 72;
+    glyphs((ch, x, y) => c.strokeText(ch, x, y));
+  }
+  if ((l.outline === 'line' || l.outline === 'double') && l.strokeWidth > 0){
+    c.strokeStyle = l.strokeColor; c.lineWidth = l.strokeWidth;
+    glyphs((ch, x, y) => c.strokeText(ch, x, y));
+  }
+  c.fillStyle = fill;
+  glyphs((ch, x, y) => c.fillText(ch, x, y));
+  c.restore();
+}
+let scratch = null;
+function drawLayer(c, l, phase){
+  if (l.hidden) return;
+  const st = animState(l, phase);
+  const a = Math.max(0, Math.min(1, (l.opacity / 100) * st.a));
+  if (a <= 0.001) return;
+  if (a >= 0.999){ drawLayerCore(c, l, st); return; }
+  // 반투명: 따로 그린 뒤 한 번에 합성 (외곽선이 비쳐 보이지 않게)
+  const cw = c.canvas.width, ch = c.canvas.height;
+  if (!scratch) scratch = document.createElement('canvas');
+  if (scratch.width !== cw || scratch.height !== ch){ scratch.width = cw; scratch.height = ch; }
+  const sx = scratch.getContext('2d');
+  sx.setTransform(1, 0, 0, 1, 0, 0); sx.clearRect(0, 0, cw, ch);
+  sx.setTransform(c.getTransform());
+  drawLayerCore(sx, l, st);
+  c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.globalAlpha = a; c.drawImage(scratch, 0, 0); c.restore();
+}
+function paintBg(c){
+  if (bgColor.startsWith('grad:')){
+    const [, a, b] = bgColor.split(':'); const g = c.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, a); g.addColorStop(1, b); c.fillStyle = g; c.fillRect(0, 0, W, H);
+  } else if (bgColor !== 'transparent'){ c.fillStyle = bgColor; c.fillRect(0, 0, W, H); }
+  if (bgImage){ c.imageSmoothingQuality = 'high'; c.drawImage(bgImage, bgPanX, bgPanY, bgImage.width * bgScale, bgImage.height * bgScale); }
+}
+function paintScene(c, phase){ paintBg(c); layers.forEach(l => drawLayer(c, l, phase)); }
+const phaseNow = () => ((performance.now() - t0) / 1000 / loopSec) % 1;
+const uiScale = () => W / (canvas.getBoundingClientRect().width || W);
+
+function render(){
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  paintScene(ctx, playing && hasAnim() ? phaseNow() : null);
+  drawGuides();
+  const l = selLayer();
+  if (l && !l.hidden) drawSelRing(l);
+}
+function drawGuides(){
+  if (!guideX && !guideY) return;
+  const u = uiScale();
+  ctx.save(); ctx.strokeStyle = '#3b6cff'; ctx.lineWidth = 1 * u; ctx.setLineDash([5 * u, 5 * u]);
+  ctx.beginPath();
+  if (guideX){ ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); }
+  if (guideY){ ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2); }
+  ctx.stroke(); ctx.restore();
+}
+function drawSelRing(l){
+  const { hw, hh } = getBox(l), u = uiScale(), hs = 4.5 * u, ry = -hh - 26 * u;
+  ctx.save();
+  ctx.translate(l.x, l.y); ctx.rotate(l.rotate * Math.PI / 180);
+  ctx.strokeStyle = l.locked ? 'rgba(161,161,169,.9)' : 'rgba(59,108,255,.9)';
+  ctx.lineWidth = 1.2 * u; ctx.setLineDash([]);
+  ctx.strokeRect(-hw, -hh, hw * 2, hh * 2); ctx.setLineDash([]);
+  if (!l.locked){
+    ctx.beginPath(); ctx.moveTo(0, -hh); ctx.lineTo(0, ry); ctx.stroke();
+    for (const [cx, cy] of [[-hw, -hh], [hw, -hh], [-hw, hh], [hw, hh]]){
+      ctx.beginPath(); ctx.rect(cx - hs, cy - hs, hs * 2, hs * 2);
+      ctx.fillStyle = '#fff'; ctx.fill(); ctx.strokeStyle = '#3b6cff'; ctx.stroke();
+    }
+    ctx.beginPath(); ctx.arc(0, ry, 6 * u, 0, Math.PI * 2);
+    ctx.fillStyle = '#3b6cff'; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2 * u; ctx.stroke();
+    
+  } else {
+
+  }
+  ctx.restore();
+}
+
+/* ─────────── 레이어 조작 ─────────── */
+function addTextLayer(text = '새 텍스트', extra = {}, focus = false){
+  const st = {}; STYLE_KEYS.forEach(k => st[k] = draft[k]);
+  const off = ((layers.length % 5) - 2) * 40;
+  const l = { ...DEFAULTS, ...st, rotate: 0, id: nextId++, x: W / 2, y: H / 2 + off, text, hidden:false, locked:false, ...extra };
   layers.push(l);
-  sel(l.id);
-  document.getElementById('guide').classList.add('hidden');
+  select(l.id); commit();
+  if (focus){ switchTab('text'); setTimeout(() => { const t = $('txtInput'); t.focus(); t.select(); }, 30); }
+  return l;
 }
-
-function sel(id) {
+function select(id){
   selId = id;
-  const l = layers.find(l=>l.id===id);
-  if (!l) return;
-  document.getElementById('txtInput').value = l.text;
-  document.getElementById('fontSel').value = l.font;
-  setSlider('fsRange','fsV',l.fontSize);
-  setSlider('lsRange','lsV',l.letterSpacing || 0);
-  setSlider('rotRange','rotV',l.rotate);
-  
-  document.getElementById('txtColor').value = l.color;
-  document.getElementById('strokeColor').value = l.strokeColor;
-  setSlider('swRange','swV',l.strokeWidth);
-  const scEl = document.getElementById('shadowColor');
-  if (scEl) scEl.value = l.shadowColor;
-  setSlider('sbRange','sbV',l.shadowBlur);
-  setSlider('sxRange','sxV',l.shadowOffsetX);
-  setSlider('syRange','syV',l.shadowOffsetY);
-  setSlider('opRange','opV',Math.round(l.opacity*100));
-  
-  outlineStyle = l.outlineStyle;
-  // 외곽선 버튼 active 복원 (폰트 스타일 버튼과 분리)
-  const outlineMap = {'none':'없음','line':'기본선','double':'이중선','glow':'네온효과'};
-  document.querySelectorAll('.outline-picker .outline-opt').forEach(b=>{
-    if (b.id && b.id.startsWith('ts-')) return; // 폰트 스타일 버튼 제외
-    b.classList.toggle('active', b.textContent.trim() === outlineMap[l.outlineStyle]);
-  });
-  
-  txtStyleMode = l.style;
-  document.querySelectorAll('#ts-normal,#ts-italic,#ts-bold').forEach(b=>b.classList.remove('active'));
-  const tsEl = document.getElementById('ts-'+l.style);
-  if (tsEl) tsEl.classList.add('active');
-  
-  gradOn = l.useGrad;
-  const gt = document.getElementById('gradToggle');
-  gt.classList.toggle('on', gradOn);
-  document.getElementById('gradPanel').style.display = gradOn?'block':'none';
-  if(l.g1) document.getElementById('g1').value = l.g1;
-  if(l.g2) document.getElementById('g2').value = l.g2;
-  gradDir = l.gradDir || 0;
-  updateGradPreview();
-  drawGradWheel();
-  
-  updateLayers(); render();
+  const l = selLayer();
+  if (l) STYLE_KEYS.forEach(k => draft[k] = l[k]);
+  syncUI(); renderLayerList(); render();
 }
-
-function setSlider(rid,vid,v) {
-  const el = document.getElementById(rid);
-  if(el) { el.value=v; document.getElementById(vid).textContent=v; }
+function delLayer(id){
+  const i = layers.findIndex(l => l.id === id); if (i < 0) return;
+  layers.splice(i, 1);
+  if (selId === id) selId = layers.length ? layers[Math.min(i, layers.length - 1)].id : null;
+  select(selId); commit();
 }
-
-function syncLayer() {
-  const l = layers.find(l=>l.id===selId);
-  if (!l) return; 
-  
-  l.text = document.getElementById('txtInput').value;
-  l.font = document.getElementById('fontSel').value;
-  l.fontSize = parseFloat(document.getElementById('fsRange').value) || 60;
-  l.letterSpacing = parseFloat(document.getElementById('lsRange').value) || 0;
-  l.rotate = parseFloat(document.getElementById('rotRange').value) || 0;
-  l.color = document.getElementById('txtColor').value;
-  l.strokeColor = document.getElementById('strokeColor').value;
-  l.strokeWidth = parseFloat(document.getElementById('swRange').value) || 0;
-  const _sc = document.getElementById('shadowColor');
-  if (_sc) l.shadowColor = _sc.value;
-  const _sb = document.getElementById('sbRange');
-  if (_sb) l.shadowBlur = parseFloat(_sb.value) || 0;
-  const _sx = document.getElementById('sxRange');
-  if (_sx) l.shadowOffsetX = parseFloat(_sx.value) || 0;
-  const _sy = document.getElementById('syRange');
-  if (_sy) l.shadowOffsetY = parseFloat(_sy.value) || 0;
-  l.opacity = (parseFloat(document.getElementById('opRange').value) || 100) / 100;
-  l.outlineStyle = outlineStyle;
-  l.style = txtStyleMode;
-  l.useGrad = gradOn;
-  l.g1 = document.getElementById('g1').value;
-  l.g2 = document.getElementById('g2').value;
-  l.gradDir = gradDir;
-  
-  updateLayers(); 
-  render();
+function dupLayer(id){
+  const l = layers.find(x => x.id === id); if (!l) return;
+  const c = { ...l, id: nextId++, x: l.x + 24, y: l.y + 24, locked:false };
+  layers.splice(layers.indexOf(l) + 1, 0, c); select(c.id); commit(); toast('레이어를 복제했어요');
 }
-
-function delLayer(id) {
-  layers = layers.filter(l=>l.id!==id);
-  if (selId===id) selId = layers.length ? layers[layers.length-1].id : null;
-  if (layers.length === 0 && !bgImage) document.getElementById('guide').classList.remove('hidden');
-  updateLayers(); render();
+function moveLayer(id, dir){
+  const i = layers.findIndex(l => l.id === id), j = i + dir;
+  if (i < 0 || j < 0 || j >= layers.length) return;
+  [layers[i], layers[j]] = [layers[j], layers[i]];
+  renderLayerList(); render(); commit();
 }
-function moveUp(id) {
-  const i=layers.findIndex(l=>l.id===id);
-  if (i<layers.length-1) [layers[i],layers[i+1]]=[layers[i+1],layers[i]];
-  updateLayers(); render();
+function toggleLayer(id, key){
+  const l = layers.find(x => x.id === id); if (!l) return;
+  l[key] = !l[key]; renderLayerList(); render(); updStageInfo(); commit();
 }
-function moveDown(id) {
-  const i=layers.findIndex(l=>l.id===id);
-  if (i>0) [layers[i],layers[i-1]]=[layers[i-1],layers[i]];
-  updateLayers(); render();
+function setProp(p, v){
+  draft[p] = v;
+  const l = selLayer(); if (l) l[p] = v;
+  if (p === 'font') document.fonts.load(`40px ${v}`, '가A').then(() => { wCache.clear(); inkCache.clear(); render(); });
+  syncUI(); renderLayerList(); render(); scheduleCommit();
 }
-
-function updateLayers() {
-  const el = document.getElementById('layerList');
-  if (!layers.length) { el.innerHTML='<div class="empty-state">레이어가 없습니다.<br>텍스트를 추가해주세요.</div>'; return; }
-  el.innerHTML = [...layers].reverse().map(l=>`
-    <div class="layer-item${l.id===selId?' active':''}" onclick="sel(${l.id})">
-      <div class="layer-thumb" style="color:${l.color}; background:${l.color==='#ffffff'?'#000':'#fff'};">${l.text.charAt(0) || 'T'}</div>
-      <div class="layer-info">
-        <div class="layer-name">${l.text || '(비어있음)'}</div>
-        <div class="layer-sub">${l.fontSize}px · ${l.font.split(',')[0].replace(/'/g,'')}</div>
-      </div>
-      <div class="layer-actions">
-        <button class="btn btn-icon" onclick="event.stopPropagation();moveUp(${l.id})" title="위로">↑</button>
-        <button class="btn btn-icon" onclick="event.stopPropagation();moveDown(${l.id})" title="아래로">↓</button>
-        <button class="btn btn-danger" onclick="event.stopPropagation();delLayer(${l.id})" style="padding:6px; border-radius:8px;">✕</button>
-      </div>
-    </div>
-  `).join('');
+function applyPreset(i){
+  const p = PRESETS[i].p;
+  Object.assign(draft, p); const l = selLayer(); if (l) Object.assign(l, p);
+  if (p.font) document.fonts.load(`40px ${p.font}`, '가A').then(() => { wCache.clear(); inkCache.clear(); render(); });
+  syncUI(); renderLayerList(); render(); commit();
+  toast(`'${PRESETS[i].name}' 스타일 적용`);
 }
-
-// ── Controls ──
-function switchTab(tab, btn) {
-  document.querySelectorAll('.tab-content').forEach(t=>t.style.display='none');
-  document.getElementById('tab-'+tab).style.display='block';
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-}
-
-function setOutline(type, btn) {
-  outlineStyle = type;
-  // 외곽선 버튼만 active 초기화 (폰트 스타일 버튼 #ts-* 는 건드리지 않음)
-  btn.closest('.outline-picker').querySelectorAll('.outline-opt').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  syncLayer();
-}
-
-function setTxtStyle(s, btn) {
-  txtStyleMode = s;
-  document.querySelectorAll('#ts-normal,#ts-italic,#ts-bold').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  syncLayer();
-}
-
-function alignCanvas(type) {
-  const l = layers.find(l => l.id === selId);
-  if (!l) return;
-
-  const W = canvas.width;
-  const H = canvas.height;
-
-  ctx.save();
-  ctx.font = makeFont(l);
-  if ('letterSpacing' in ctx) ctx.letterSpacing = (l.letterSpacing||0)+'px';
-  const tw = ctx.measureText(l.text).width;
-  ctx.restore();
-
-  const pad = 20; 
-  const hw = tw / 2;
-  const hh = l.fontSize / 2;
-
-  switch(type) {
-    case 'left':   l.x = hw + pad; break;
+function alignCanvas(type){
+  const l = selLayer(); if (!l) return toast('먼저 레이어를 선택해 주세요');
+  const { hw, hh } = getBox(l), pad = 12;
+  switch (type){
+    case 'left': l.x = hw + pad; break;
     case 'center': l.x = W / 2; break;
-    case 'right':  l.x = W - hw - pad; break;
-    case 'top':    l.y = hh + pad; break;
+    case 'right': l.x = W - hw - pad; break;
+    case 'top': l.y = hh + pad; break;
     case 'middle': l.y = H / 2; break;
     case 'bottom': l.y = H - hh - pad; break;
-    case 'center-all':
-      l.x = W / 2;
-      l.y = H / 2;
-      break;
+    case 'center-all': l.x = W / 2; l.y = H / 2; break;
   }
-  
-  updateLayers();
-  render();
+  render(); commit();
 }
 
-function toggleGrad() {
-  gradOn = !gradOn;
-  document.getElementById('gradToggle').classList.toggle('on', gradOn);
-  document.getElementById('gradPanel').style.display = gradOn?'block':'none';
-  updateGradPreview();
-  syncLayer();
-}
-
-function updateGradPreview() {
-  const g1 = document.getElementById('g1').value;
-  const g2 = document.getElementById('g2').value;
-  const cssDir = gradDir + 90; 
-  document.getElementById('gradPreview').style.background = `linear-gradient(${cssDir}deg,${g1},${g2})`;
+/* ─────────── UI 동기화 ─────────── */
+const FMT = {
+  fontSize: v => v + 'px', letterSpacing: v => v, lineHeight: v => (+v).toFixed(2), rotate: v => v + '°',
+  opacity: v => v + '%', animPower: v => v + '%', animDelay: v => v + '%',
+};
+function syncUI(){
+  const s = cur();
+  document.querySelectorAll('[data-p]').forEach(el => {
+    const p = el.dataset.p, v = s[p];
+    if (el.classList.contains('seg')) el.querySelectorAll('[data-v]').forEach(b => b.classList.toggle('active', String(b.dataset.v) === String(v)));
+    else if (el.hasAttribute('data-bool')) el.classList.toggle('on', !!v);
+    else if (String(el.value) !== String(v)) el.value = v;
+  });
+  document.querySelectorAll('[data-show]').forEach(el => { const p = el.dataset.show; el.textContent = (FMT[p] || (x => x))(s[p]); });
+  document.querySelectorAll('[data-set]').forEach(el => el.classList.toggle('selected', String(s[el.dataset.set]).toLowerCase() === el.dataset.val.toLowerCase()));
+  $('gradPanel').hidden = !s.useGrad;
+  $('gradPanel').style.display = s.useGrad ? '' : 'none';
+  $('doubleRow').style.display = s.outline === 'double' ? '' : 'none';
+  $('strokeLabel').textContent = s.outline === 'glow' ? '빛 색' : s.outline === 'double' ? '안쪽 선 색' : '선 색';
+  $('bubbleOpts').style.display = s.bubble === 'none' ? 'none' : '';
+  $('animOpts').classList.toggle('dim', s.anim === 'none');
+  $('selHint').hidden = !!selLayer();
+  $('gradPreview').style.background = `linear-gradient(${(s.gradDir || 0) + 90}deg,${s.g1},${s.g2})`;
   drawGradWheel();
+  updStageInfo();
+}
+function updStageInfo(){
+  const n = layers.length, a = layers.filter(l => !l.hidden && l.anim !== 'none').length;
+  $('stageInfo').textContent = `레이어 ${n} · 움직임 ${a}`;
+}
+function drawGradWheel(){
+  const wc = $('gradWheel'), w = wc.getContext('2d'), s = cur();
+  const cx = 32, cy = 32, r = 28, rad = (s.gradDir || 0) * Math.PI / 180;
+  w.clearRect(0, 0, 64, 64);
+  w.beginPath(); w.arc(cx, cy, r, 0, Math.PI * 2);
+  const g = w.createLinearGradient(cx - Math.cos(rad) * r, cy - Math.sin(rad) * r, cx + Math.cos(rad) * r, cy + Math.sin(rad) * r);
+  g.addColorStop(0, s.g1); g.addColorStop(1, s.g2); w.fillStyle = g; w.fill();
+  const ax = cx + Math.cos(rad) * (r - 6), ay = cy + Math.sin(rad) * (r - 6), bx = cx - Math.cos(rad) * (r - 6), by = cy - Math.sin(rad) * (r - 6);
+  w.strokeStyle = 'rgba(255,255,255,.95)'; w.lineWidth = 2.5; w.lineCap = 'round';
+  w.beginPath(); w.moveTo(bx, by); w.lineTo(ax, ay); w.stroke();
+  w.beginPath(); w.moveTo(ax, ay); w.lineTo(ax - 7 * Math.cos(rad - 0.45), ay - 7 * Math.sin(rad - 0.45));
+  w.moveTo(ax, ay); w.lineTo(ax - 7 * Math.cos(rad + 0.45), ay - 7 * Math.sin(rad + 0.45)); w.stroke();
 }
 
-function drawGradWheel() {
-  const wc = document.getElementById('gradWheel');
-  if (!wc) return;
-  const wctx = wc.getContext('2d');
-  const cx = 32, cy = 32, r = 28;
-  wctx.clearRect(0, 0, 64, 64);
-
-  wctx.beginPath();
-  wctx.arc(cx, cy, r, 0, Math.PI * 2);
-  const g1v = document.getElementById('g1').value;
-  const g2v = document.getElementById('g2').value;
-  const rad = (gradDir * Math.PI) / 180;
-  const grd = wctx.createLinearGradient(
-    cx - Math.cos(rad)*r, cy - Math.sin(rad)*r,
-    cx + Math.cos(rad)*r, cy + Math.sin(rad)*r
-  );
-  grd.addColorStop(0, g1v); grd.addColorStop(1, g2v);
-  wctx.fillStyle = grd;
-  wctx.fill();
-
-  const ax = cx + Math.cos(rad) * (r - 6);
-  const ay = cy + Math.sin(rad) * (r - 6);
-  const bx = cx - Math.cos(rad) * (r - 6);
-  const by = cy - Math.sin(rad) * (r - 6);
-  wctx.beginPath();
-  wctx.moveTo(bx, by);
-  wctx.lineTo(ax, ay);
-  wctx.strokeStyle = 'rgba(255,255,255,0.9)';
-  wctx.lineWidth = 2.5;
-  wctx.stroke();
-
-  const headLen = 7;
-  const angle = Math.atan2(ay - by, ax - bx);
-  wctx.beginPath();
-  wctx.moveTo(ax, ay);
-  wctx.lineTo(ax - headLen * Math.cos(angle - 0.4), ay - headLen * Math.sin(angle - 0.4));
-  wctx.moveTo(ax, ay);
-  wctx.lineTo(ax - headLen * Math.cos(angle + 0.4), ay - headLen * Math.sin(angle + 0.4));
-  wctx.strokeStyle = 'rgba(255,255,255,0.9)';
-  wctx.lineWidth = 2;
-  wctx.stroke();
+const sv = (d, s = 15) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const IC = {
+  eye: sv('<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'),
+  eyeOff: sv('<path d="M3 3l18 18M10.6 5.1A10 10 0 0112 5c6.5 0 10 7 10 7a17 17 0 01-3 3.9M6.6 6.6C3.7 8.4 2 12 2 12s3.5 7 10 7a9.6 9.6 0 005.4-1.6M9.9 9.9a3 3 0 004.2 4.2"/>'),
+  lock: sv('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/>'),
+  unlock: sv('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 017.6-1.8"/>'),
+  up: sv('<path d="M12 19V5M5 12l7-7 7 7"/>'), down: sv('<path d="M12 5v14M19 12l-7 7-7-7"/>'),
+  dup: sv('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 012-2h9"/>'),
+  del: sv('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>'),
+};
+function renderLayerList(){
+  const el = $('layerList'); $('layerCount').textContent = layers.length;
+  if (!layers.length){ el.innerHTML = '<div class="empty-state">아직 레이어가 없어요.<br>텍스트나 스티커를 추가해 보세요</div>'; return; }
+  el.innerHTML = [...layers].reverse().map(l => {
+    const first = splitChars((l.text || '').trim())[0] || 'T';
+    const thumbBg = l.bubble !== 'none' ? l.bubbleColor : (l.color.toLowerCase() === '#ffffff' ? '#24193a' : '#fff');
+    const thumbCol = l.useGrad ? l.g1 : l.color;
+    return `
+    <div class="layer${l.id === selId ? ' active' : ''}${l.hidden ? ' is-hidden' : ''}" onclick="select(${l.id})">
+      <div class="layer-main">
+        <div class="layer-thumb" style="background:${thumbBg};color:${thumbCol};font-family:${esc(l.font)}">${esc(first)}</div>
+        <div class="layer-info">
+          <div class="layer-name">${esc((l.text || '').replace(/\n/g, ' ') || '(비어있음)')}</div>
+          <div class="layer-sub">${esc(FONT_NAME[l.font] || '')} · ${l.fontSize}px${l.anim !== 'none' ? ' · ' + ANIM_NAME[l.anim] : ''}</div>
+        </div>
+        <div class="layer-quick">
+          <button class="mini${l.hidden ? '' : ' on'}" title="보이기/숨기기" onclick="event.stopPropagation();toggleLayer(${l.id},'hidden')">${l.hidden ? IC.eyeOff : IC.eye}</button>
+          <button class="mini${l.locked ? ' on' : ''}" title="잠금" onclick="event.stopPropagation();toggleLayer(${l.id},'locked')">${l.locked ? IC.lock : IC.unlock}</button>
+        </div>
+      </div>
+      <div class="layer-acts">
+        <button class="mini" title="앞으로" onclick="event.stopPropagation();moveLayer(${l.id},1)">${IC.up}</button>
+        <button class="mini" title="뒤로" onclick="event.stopPropagation();moveLayer(${l.id},-1)">${IC.down}</button>
+        <button class="mini" title="복제 (Ctrl+D)" onclick="event.stopPropagation();dupLayer(${l.id})">${IC.dup}</button>
+        <button class="mini danger" title="삭제 (Delete)" onclick="event.stopPropagation();delLayer(${l.id})">${IC.del}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function switchTab(name){
+  if (name === 'style') requestAnimationFrame(drawPresetPreviews);
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.tab-pane').forEach(p => p.hidden = p.dataset.pane !== name);
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-  const wc = document.getElementById('gradWheel');
-  if (!wc) return;
-  let wheelDragging = false;
-  const getWheelAngle = (e) => {
-    const rect = wc.getBoundingClientRect();
-    const t = e.touches ? e.touches[0] : e;
-    const dx = t.clientX - rect.left - 32;
-    const dy = t.clientY - rect.top - 32;
-    return Math.round(Math.atan2(dy, dx) * 180 / Math.PI);
-  };
-  wc.addEventListener('mousedown', e => { wheelDragging = true; gradDir = getWheelAngle(e); updateGradPreview(); syncLayer(); });
-  window.addEventListener('mousemove', e => { if (!wheelDragging) return; gradDir = getWheelAngle(e); updateGradPreview(); syncLayer(); });
-  window.addEventListener('mouseup', () => { wheelDragging = false; });
-  wc.addEventListener('touchstart', e => { e.preventDefault(); wheelDragging = true; gradDir = getWheelAngle(e); updateGradPreview(); syncLayer(); }, {passive:false});
-  window.addEventListener('touchmove', e => { if (!wheelDragging) return; gradDir = getWheelAngle(e); updateGradPreview(); syncLayer(); });
-  window.addEventListener('touchend', () => { wheelDragging = false; });
-});
-
-function toggleBgLock() {
-  bgLocked = !bgLocked;
-  const btn = document.getElementById('bgLockBtn');
-  btn.textContent = bgLocked ? '🔒 이미지 고정됨' : '🔓 이미지 고정 해제됨';
-  btn.style.background = bgLocked ? 'var(--accent-dim)' : '';
-  btn.style.borderColor = bgLocked ? 'var(--accent)' : '';
-  btn.style.color = bgLocked ? 'var(--accent)' : '';
+/* ─────────── 히스토리 & 자동 저장 ─────────── */
+const SAVE_KEY = 'stampmaker.v2';
+let hist = [], hIdx = -1, commitTimer = null;
+const snapshot = () => JSON.stringify({ layers, selId, nextId, bgColor, bgScale, bgPanX, bgPanY, loopSec });
+function commit(){
+  clearTimeout(commitTimer);
+  const s = snapshot();
+  if (hist[hIdx] === s) return;
+  hist = hist.slice(0, hIdx + 1); hist.push(s);
+  if (hist.length > 100) hist.shift();
+  hIdx = hist.length - 1; updUndo();
+  try { localStorage.setItem(SAVE_KEY, s); } catch (e) {}
 }
-
-function setColor(id, v) { document.getElementById(id).value = v; syncLayer(); }
-
-function updateBgScale(val) {
-  if (!bgImage) return;
-  const newScale = baseScale * (val / 100);
-  const cx = canvas.width / 2;
-  const cy = canvas.height / 2;
-  bgPanX = cx - (cx - bgPanX) * (newScale / bgScale);
-  bgPanY = cy - (cy - bgPanY) * (newScale / bgScale);
-  bgScale = newScale;
-  document.getElementById('bgScaleV').textContent = val;
-  render();
+function scheduleCommit(){ clearTimeout(commitTimer); commitTimer = setTimeout(commit, 350); }
+function applySnap(s){
+  const o = JSON.parse(s);
+  layers = (o.layers || []).map(l => ({ ...DEFAULTS, ...l }));
+  nextId = Math.max(o.nextId || 1, ...layers.map(l => l.id + 1));
+  selId = layers.some(l => l.id === o.selId) ? o.selId : null;
+  bgColor = o.bgColor || 'transparent';
+  if (bgImage && o.bgScale){ bgScale = o.bgScale; bgPanX = o.bgPanX; bgPanY = o.bgPanY; }
+  loopSec = o.loopSec || 1.6;
+  const l = selLayer(); if (l) STYLE_KEYS.forEach(k => draft[k] = l[k]);
+  syncBgUI(); syncUI(); renderLayerList(); render();
 }
+function undo(){ clearTimeout(commitTimer); if (hIdx > 0){ hIdx--; applySnap(hist[hIdx]); updUndo(); saveLocal(); } }
+function redo(){ if (hIdx < hist.length - 1){ hIdx++; applySnap(hist[hIdx]); updUndo(); saveLocal(); } }
+function saveLocal(){ try { localStorage.setItem(SAVE_KEY, hist[hIdx]); } catch (e) {} }
+function updUndo(){ $('undoBtn').disabled = hIdx <= 0; $('redoBtn').disabled = hIdx >= hist.length - 1; }
 
-function loadImage(e) {
-  const file = e.target.files[0];
-  if (!file) return;
+/* ─────────── 배경 ─────────── */
+function syncBgUI(){
+  document.querySelectorAll('.bg-swatch').forEach(s => s.classList.toggle('selected', s.dataset.bg === bgColor));
+  $('bgScaleRange').value = Math.round(bgScale / baseScale * 100);
+  $('bgScaleV').textContent = $('bgScaleRange').value + '%';
+  $('bgLockToggle').classList.toggle('on', bgLocked);
+  $('loopRange').value = loopSec; $('loopV').textContent = loopSec.toFixed(1) + '초';
+}
+function setBg(v){ bgColor = v; syncBgUI(); render(); commit(); }
+function loadImageFile(file){
+  if (!file || !file.type.startsWith('image/')) return;
   const reader = new FileReader();
   reader.onload = ev => {
     const img = new Image();
     img.onload = () => {
-      bgImage = img;
-      baseScale = Math.max(canvas.width / img.width, canvas.height / img.height);
+      bgImage = img; bgOriginal = img; origData = null; cutOn = false; holeMode = false; holeSeeds = []; syncCutUI();
+      baseScale = Math.max(W / img.width, H / img.height);
       bgScale = baseScale;
-      bgPanX = (canvas.width - img.width * bgScale) / 2;
-      bgPanY = (canvas.height - img.height * bgScale) / 2;
-      
-      document.getElementById('bgScaleRange').value = 100;
-      document.getElementById('bgScaleV').textContent = 100;
-      document.getElementById('guide').classList.add('hidden');
-      render();
+      bgPanX = (W - img.width * bgScale) / 2; bgPanY = (H - img.height * bgScale) / 2;
+      syncBgUI(); render(); commit(); toast('배경 이미지를 넣었어요');
     };
     img.src = ev.target.result;
   };
   reader.readAsDataURL(file);
 }
-
-function setBg(c, el) {
-  bgColor = c;
-  document.querySelectorAll('.bg-swatch').forEach(s=>s.classList.remove('selected'));
-  if (el) el.classList.add('selected');
-  render();
+function updateBgScale(val){
+  if (!bgImage) return;
+  const ns = baseScale * (val / 100), cx = W / 2, cy = H / 2;
+  bgPanX = cx - (cx - bgPanX) * (ns / bgScale); bgPanY = cy - (cy - bgPanY) * (ns / bgScale);
+  bgScale = ns; $('bgScaleV').textContent = val + '%'; render(); scheduleCommit();
 }
+function fitBg(how){
+  if (!bgImage) return toast('먼저 배경 이미지를 올려 주세요');
+  bgScale = how === 'cover' ? baseScale : Math.min(W / bgImage.width, H / bgImage.height);
+  bgPanX = (W - bgImage.width * bgScale) / 2; bgPanY = (H - bgImage.height * bgScale) / 2;
+  syncBgUI(); render(); commit();
+}
+function removeBg(){ if (!bgImage) return; bgImage = null; bgOriginal = null; origData = null; cutOn = false; holeMode = false; holeSeeds = []; syncCutUI(); baseScale = bgScale = 1; bgPanX = bgPanY = 0; $('fileInput').value = ''; syncBgUI(); render(); toast('배경 이미지를 지웠어요'); }
+function toggleBgLock(){ bgLocked = !bgLocked; syncBgUI(); toast(bgLocked ? '배경 이미지를 고정했어요' : '배경 이미지를 움직일 수 있어요'); }
 
-function save(fmt) {
-  const tmp = document.createElement('canvas');
-  tmp.width = canvas.width; tmp.height = canvas.height;
-  const tc = tmp.getContext('2d');
-  
-  // 'transparent'면 배경을 칠하지 않아 투명 배경 PNG로 저장됩니다.
-  if (bgColor !== 'transparent') { tc.fillStyle = bgColor; tc.fillRect(0,0,tmp.width,tmp.height); }
-  
-  if (bgImage) {
-     tc.drawImage(bgImage, bgPanX, bgPanY, bgImage.width * bgScale, bgImage.height * bgScale);
+/* ─────────── 배경 지우기 ─────────── */
+let bgOriginal = null, origData = null, cutOn = false, cutTimer = null, pickMode = false, holeMode = false, holeSeeds = [];
+const toHex = (r, g, b) => '#' + [r, g, b].map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
+function getOrigData(){
+  if (origData) return origData;
+  const w = bgOriginal.naturalWidth || bgOriginal.width, h = bgOriginal.naturalHeight || bgOriginal.height;
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(bgOriginal, 0, 0);
+  origData = { w, h, data: x.getImageData(0, 0, w, h).data };
+  return origData;
+}
+function detectBgColor(){
+  const { w, h, data } = getOrigData(), buckets = new Map();
+  const add = (px, py) => {
+    const i = (py * w + px) * 4; if (data[i + 3] < 128) return;
+    const k = ((data[i] >> 4) << 8) | ((data[i + 1] >> 4) << 4) | (data[i + 2] >> 4);
+    const b = buckets.get(k) || [0, 0, 0, 0]; b[0] += data[i]; b[1] += data[i + 1]; b[2] += data[i + 2]; b[3]++; buckets.set(k, b);
+  };
+  const step = Math.max(1, Math.floor(Math.max(w, h) / 400));
+  for (let px = 0; px < w; px += step){ add(px, 0); add(px, h - 1); }
+  for (let py = 0; py < h; py += step){ add(0, py); add(w - 1, py); }
+  let best = null; buckets.forEach(b => { if (!best || b[3] > best[3]) best = b; });
+  return best ? toHex(best[0] / best[3], best[1] / best[3], best[2] / best[3]) : '#ffffff';
+}
+function syncCutUI(){
+  $('cutBtn').textContent = cutOn ? '원본으로 되돌리기' : '배경 투명하게 만들기';
+  $('cutBtn').className = 'btn btn-full ' + (cutOn ? 'btn-ghost' : 'btn-primary');
+  $('cutOpts').style.display = cutOn ? '' : 'none';
+  $('cutHint').style.display = cutOn ? 'none' : '';
+  $('cutColorHex').textContent = $('cutColor').value;
+  $('pickBtn').classList.toggle('btn-primary', pickMode); $('pickBtn').classList.toggle('btn-ghost', !pickMode);
+  $('holeBtn').classList.toggle('btn-primary', holeMode); $('holeBtn').classList.toggle('btn-ghost', !holeMode);
+  $('holeBtn').textContent = holeMode ? '클릭 모드 끄기' : (holeSeeds.length ? `클릭해서 지우기 (${holeSeeds.length})` : '클릭해서 지우기');
+}
+function toggleCut(){
+  if (!bgOriginal) return toast('먼저 배경 이미지를 올려 주세요');
+  cutOn = !cutOn; pickMode = false; holeMode = false;
+  if (cutOn){
+    $('cutColor').value = detectBgColor();
+    if (bgColor !== 'transparent'){ bgColor = 'transparent'; syncBgUI(); commit(); }
+    runCut();
+  } else { bgImage = bgOriginal; render(); }
+  syncCutUI();
+}
+function scheduleCut(){ if (!cutOn) return; clearTimeout(cutTimer); cutTimer = setTimeout(runCut, 80); }
+function runCut(){
+  const { w, h, data: src } = getOrigData(), N = w * h;
+  const out = new ImageData(new Uint8ClampedArray(src), w, h), d = out.data;
+  const [br, bg, bb] = hexRgb($('cutColor').value);
+  const T = +$('cutTol').value, soft = $('cutSoft').classList.contains('on');
+  const S = soft ? Math.max(10, T * 0.7) : 0;
+  const dist = new Float32Array(N);
+  for (let i = 0, j = 0; i < N; i++, j += 4){ const r = src[j] - br, g = src[j + 1] - bg, b = src[j + 2] - bb; dist[i] = Math.sqrt(r * r + g * g + b * b); }
+  const m = new Uint8Array(N);                 // 1 = 지울 배경
+  {
+    const q = new Int32Array(N); let qh = 0, qt = 0;
+    const push = i => { if (!m[i] && dist[i] <= T){ m[i] = 1; q[qt++] = i; } };
+    for (let x = 0; x < w; x++){ push(x); push((h - 1) * w + x); }
+    for (let y = 0; y < h; y++){ push(y * w); push(y * w + w - 1); }
+    holeSeeds.forEach(s => { const i = s.y * w + s.x; if (!m[i] && dist[i] <= T + S){ m[i] = 1; q[qt++] = i; } });
+    while (qh < qt){
+      const i = q[qh++], x = i % w;
+      if (x > 0) push(i - 1); if (x < w - 1) push(i + 1);
+      if (i >= w) push(i - w); if (i < N - w) push(i + w);
+    }
   }
-  
-  layers.forEach(l => drawLayer(l, true, tc));
-  
-  const a = document.createElement('a');
-  a.href = tmp.toDataURL('image/png', 1.0);
-  a.download = `stamp_maker_${Date.now()}.png`;
-  a.click();
+  for (let i = 0; i < N; i++) if (m[i]) d[i * 4 + 3] = 0;
+  if (soft){
+    // 배경과 맞닿은 2px 테두리를 반투명 처리하고 배경색 번짐을 걷어냄
+    const ring = new Uint8Array(N);
+    for (let pass = 1; pass <= 2; pass++){
+      const hit = pass === 1 ? (k => m[k]) : (k => ring[k] === 1);
+      for (let i = 0; i < N; i++){
+        if (m[i] || ring[i]) continue;
+        const x = i % w;
+        if ((x > 0 && hit(i - 1)) || (x < w - 1 && hit(i + 1)) || (i >= w && hit(i - w)) || (i < N - w && hit(i + w))) ring[i] = pass;
+      }
+    }
+    for (let i = 0; i < N; i++){
+      if (!ring[i] || dist[i] >= T + S) continue;
+      const a = Math.max(0, (dist[i] - T) / S), j = i * 4;
+      if (a < 0.04){ d[j + 3] = 0; continue; }
+      d[j] = (src[j] - br * (1 - a)) / a; d[j + 1] = (src[j + 1] - bg * (1 - a)) / a; d[j + 2] = (src[j + 2] - bb * (1 - a)) / a;
+      d[j + 3] = src[j + 3] * a;
+    }
+  }
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  c.getContext('2d').putImageData(out, 0, 0);
+  bgImage = c; render();
+}
+function toggleHole(){
+  holeMode = !holeMode; pickMode = false; syncCutUI();
+  canvas.style.cursor = holeMode ? 'crosshair' : 'default';
+  if (holeMode) toast('지울 빈 곳을 캔버스에서 눌러 주세요');
+}
+function clearHoles(){ holeSeeds = []; syncCutUI(); runCut(); }
+function imgPoint(x, y){
+  const { w, h } = getOrigData();
+  const ix = Math.floor((x - bgPanX) / bgScale), iy = Math.floor((y - bgPanY) / bgScale);
+  return (ix < 0 || iy < 0 || ix >= w || iy >= h) ? null : { x: ix, y: iy };
+}
+function addHole(x, y){
+  const pt = imgPoint(x, y); if (!pt) return toast('이미지 바깥이에요');
+  const { w, data } = getOrigData(), i = (pt.y * w + pt.x) * 4, [br, bg, bb] = hexRgb($('cutColor').value);
+  const T = +$('cutTol').value, S = $('cutSoft').classList.contains('on') ? Math.max(10, T * 0.7) : 0;
+  if (Math.hypot(data[i] - br, data[i + 1] - bg, data[i + 2] - bb) > T + S) return toast('그 부분은 지울 색과 달라요');
+  holeSeeds.push(pt); syncCutUI(); runCut();
+}
+function startPick(){
+  pickMode = !pickMode; holeMode = false; syncCutUI();
+  canvas.style.cursor = pickMode ? 'crosshair' : 'default';
+  if (pickMode) toast('캔버스에서 지울 색을 클릭하세요');
+}
+function pickColorAt(x, y){
+  pickMode = false; canvas.style.cursor = 'default';
+  const { w, h, data } = getOrigData();
+  const ix = Math.floor((x - bgPanX) / bgScale), iy = Math.floor((y - bgPanY) / bgScale);
+  if (ix < 0 || iy < 0 || ix >= w || iy >= h){ syncCutUI(); return toast('이미지 바깥이에요'); }
+  const i = (iy * w + ix) * 4;
+  $('cutColor').value = toHex(data[i], data[i + 1], data[i + 2]);
+  syncCutUI(); runCut();
 }
 
-function clearAll() {
-  if (!confirm('모든 작업을 초기화할까요?')) return;
-  layers=[]; bgImage=null; selId=null;
-  bgScale = 1; bgPanX = 0; bgPanY = 0; baseScale = 1;
-  bgLocked = false;
-  const lb = document.getElementById('bgLockBtn');
-  lb.textContent = '🔓 이미지 고정 해제됨';
-  lb.style.background = lb.style.borderColor = lb.style.color = '';
-  document.getElementById('guide').classList.remove('hidden');
-  document.getElementById('bgScaleRange').value = 100;
-  document.getElementById('bgScaleV').textContent = 100;
-  document.getElementById('txtInput').value = '';
-  setBg('transparent', document.querySelector('.bg-swatch'));
-  
-  addNewTextLayer('기본 텍스트');
-}
-
-// ── Interaction (Drag & Pan) ──
-function getCoords(e) {
+/* ─────────── 캔버스 조작 ─────────── */
+function coords(e){
   const r = canvas.getBoundingClientRect();
-  const sx = canvas.width/r.width, sy = canvas.height/r.height;
-  const t = e.touches && e.touches[0] ? e.touches[0] : (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0] : e);
-  return { x:(t.clientX-r.left)*sx, y:(t.clientY-r.top)*sy };
+  return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height };
 }
-
-function hitTest(x,y) {
-  for (let i=layers.length-1;i>=0;i--) {
-    const l=layers[i];
-    ctx.font=makeFont(l);
-    if ('letterSpacing' in ctx) { ctx.letterSpacing = l.letterSpacing + "px"; }
-    
-    const maxW = ctx.measureText(l.text).width;
-    const hw = maxW/2 + 20; 
-    const hh = (l.fontSize)/2 + 20;
-    
-    const dx=x-l.x, dy=y-l.y;
-    const rad=-l.rotate*Math.PI/180;
-    const rx=dx*Math.cos(rad)-dy*Math.sin(rad);
-    const ry=dx*Math.sin(rad)+dy*Math.cos(rad);
-    if (Math.abs(rx)<hw && Math.abs(ry)<hh) return l;
+function toLocal(l, x, y){
+  const r = -l.rotate * Math.PI / 180, dx = x - l.x, dy = y - l.y;
+  return [dx * Math.cos(r) - dy * Math.sin(r), dx * Math.sin(r) + dy * Math.cos(r)];
+}
+function hitTest(x, y){
+  for (let i = layers.length - 1; i >= 0; i--){
+    const l = layers[i]; if (l.hidden) continue;
+    const { hw, hh } = getBox(l), [lx, ly] = toLocal(l, x, y);
+    if (Math.abs(lx) < hw && Math.abs(ly) < hh) return l;
   }
   return null;
 }
-
-function hitHandle(x, y) {
-  const l = layers.find(l => l.id === selId);
-  if (!l) return null;
-  const { corners, rotate: rotHandle } = getSelHandles(l);
-
-  const rp = localToWorld(l, rotHandle.lx, rotHandle.ly);
-  if (Math.hypot(x - rp.x, y - rp.y) < 16) return 'rot';
-
-  for (const c of corners) {
-    const { x: cx, y: cy } = localToWorld(l, c.lx, c.ly);
-    if (Math.hypot(x - cx, y - cy) < 14) return c.id;
-  }
+function hitHandle(x, y){
+  const l = selLayer(); if (!l || l.hidden || l.locked) return null;
+  const { hw, hh } = getBox(l), u = uiScale(), [lx, ly] = toLocal(l, x, y);
+  if (Math.hypot(lx, ly - (-hh - 26 * u)) < 16 * u) return 'rot';
+  for (const [cx, cy] of [[-hw, -hh], [hw, -hh], [-hw, hh], [hw, hh]]) if (Math.hypot(lx - cx, ly - cy) < 15 * u) return 'size';
   return null;
 }
+function beginRotate(l, x, y){ if (l.locked) return; mode = 'rotate'; start = { a: Math.atan2(y - l.y, x - l.x), rot: l.rotate }; canvas.style.cursor = 'crosshair'; }
+function beginResize(l, x, y){ if (l.locked) return; mode = 'resize'; start = { fs: l.fontSize, d: Math.hypot(x - l.x, y - l.y) }; canvas.style.cursor = 'nwse-resize'; }
+function openTextEdit(id){
+  select(id); switchTab('text');
+  setTimeout(() => { const t = $('txtInput'); t.focus(); t.select(); }, 40);
+}
 
-canvas.addEventListener('mousedown', e => {
-  const { x, y } = getCoords(e);
-
-  if (e.button === 2) {
-    const l = layers.find(l => l.id === selId) || hitTest(x, y);
-    if (l) {
-      if (l.id !== selId) sel(l.id);
-      rotating = true;
-      rotateStartAngle = Math.atan2(y - l.y, x - l.x);
-      rotateStartRot = l.rotate;
-      canvas.style.cursor = 'crosshair';
-    }
-    return;
-  }
-
-  const handle = hitHandle(x, y);
-  if (handle) {
-    const l = layers.find(l => l.id === selId);
-    if (handle === 'rot') {
-      rotating = true;
-      rotateStartAngle = Math.atan2(y - l.y, x - l.x);
-      rotateStartRot = l.rotate;
-      canvas.style.cursor = 'crosshair';
-    } else {
-      resizing = true;
-      resizeStartX = x; resizeStartY = y;
-      resizeStartFontSize = l.fontSize;
-      canvas.style.cursor = 'nwse-resize';
-    }
-    return;
-  }
-
-  const l = hitTest(x, y);
-  if (l) {
-    if (e.shiftKey) {
-      sel(l.id);
-      resizing = true;
-      resizeStartX = x; resizeStartY = y;
-      resizeStartFontSize = l.fontSize;
-      canvas.style.cursor = 'nwse-resize';
-    } else {
-      dragging = true; sel(l.id); dox = x - l.x; doy = y - l.y;
-      canvas.style.cursor = 'grabbing';
-    }
-  } else if (bgImage && !bgLocked) {
-    draggingBg = true; bgDox = x - bgPanX; bgDoy = y - bgPanY;
-    selId = null; updateLayers(); render();
-    canvas.style.cursor = 'grabbing';
-  } else {
-    selId = null; updateLayers(); render();
-  }
-});
-
-canvas.addEventListener('contextmenu', e => e.preventDefault());
-
-canvas.addEventListener('mousemove', e => {
-  const { x, y } = getCoords(e);
-
-  if (rotating) {
-    const l = layers.find(l => l.id === selId);
-    if (l) {
-      const angle = Math.atan2(y - l.y, x - l.x);
-      const delta = (angle - rotateStartAngle) * 180 / Math.PI;
-      l.rotate = Math.round(rotateStartRot + delta);
-      setSlider('rotRange', 'rotV', l.rotate);
-      render();
-    }
-    return;
-  }
-
-  if (resizing) {
-    const l = layers.find(l => l.id === selId);
-    if (l) {
-      const dist = Math.hypot(x - l.x, y - l.y);
-      const startDist = Math.hypot(resizeStartX - l.x, resizeStartY - l.y);
-      const ratio = dist / (startDist || 1);
-      const newSize = Math.max(10, Math.round(resizeStartFontSize * ratio));
-      l.fontSize = newSize;
-      setSlider('fsRange', 'fsV', newSize);
-      render();
-    }
-    return;
-  }
-
-  if (dragging) {
-    const l = layers.find(l => l.id === selId);
-    if (l) { l.x = x - dox; l.y = y - doy; render(); }
-    return;
-  }
-
-  if (draggingBg) {
-    bgPanX = x - bgDox; bgPanY = y - bgDoy; render();
-    return;
-  }
-
-  const handle = hitHandle(x, y);
-  if (handle === 'rot') canvas.style.cursor = 'crosshair';
-  else if (handle) canvas.style.cursor = 'nwse-resize';
-  else canvas.style.cursor = hitTest(x, y) ? 'grab' : (bgImage && !bgLocked ? 'move' : 'default');
-});
-
-canvas.addEventListener('mouseup', () => {
-  dragging = false; draggingBg = false; resizing = false; rotating = false;
-  canvas.style.cursor = 'default';
-});
-canvas.addEventListener('mouseleave', () => {
-  dragging = false; draggingBg = false; resizing = false; rotating = false;
-});
-
-canvas.addEventListener('dblclick', e => {
-  const { x, y } = getCoords(e);
-  const l = hitTest(x, y);
-  if (l) {
-    sel(l.id);
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
-    document.getElementById('tab-text').style.display = 'block';
-    document.querySelector('.tab-btn').classList.add('active');
-    setTimeout(() => {
-      const inp = document.getElementById('txtInput');
-      inp.focus();
-      inp.select();
-    }, 50);
-  }
-});
-
-canvas.addEventListener('touchstart', e => {
+canvas.addEventListener('pointerdown', e => {
   e.preventDefault();
-  const { x, y } = getCoords(e);
-  const handle = hitHandle(x, y);
-  if (handle) {
-    const l = layers.find(l => l.id === selId);
-    if (handle === 'rot') {
-      rotating = true;
-      rotateStartAngle = Math.atan2(y - l.y, x - l.x);
-      rotateStartRot = l.rotate;
-    } else {
-      resizing = true;
-      resizeStartX = x; resizeStartY = y;
-      resizeStartFontSize = l.fontSize;
-    }
+  if (pickMode){ const { x, y } = coords(e); pickColorAt(x, y); return; }
+  if (holeMode && cutOn){ const { x, y } = coords(e); addHole(x, y); return; }
+  try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+  const { x, y } = coords(e); moved = false;
+  if (e.pointerType !== 'mouse'){
+    const now = Date.now();
+    if (now - lastTap < 320){ lastTap = 0; const l = hitTest(x, y); if (l){ openTextEdit(l.id); return; } }
+    lastTap = now;
+  }
+  const s = selLayer();
+  if (e.button === 2){ const l = s || hitTest(x, y); if (l){ if (l.id !== selId) select(l.id); beginRotate(l, x, y); } return; }
+  const h = hitHandle(x, y);
+  if (h){ h === 'rot' ? beginRotate(s, x, y) : beginResize(s, x, y); return; }
+  const l = hitTest(x, y);
+  if (l){
+    if (l.id !== selId) select(l.id);
+    if (l.locked) return;
+    if (e.shiftKey) beginResize(l, x, y);
+    else { mode = 'drag'; start = { dx: x - l.x, dy: y - l.y }; canvas.style.cursor = 'grabbing'; }
+  } else if (bgImage && !bgLocked){
+    mode = 'pan'; start = { dx: x - bgPanX, dy: y - bgPanY }; canvas.style.cursor = 'grabbing';
+    if (selId !== null) select(null);
+  } else if (selId !== null) select(null);
+});
+canvas.addEventListener('pointermove', e => {
+  const { x, y } = coords(e);
+  if (!mode){
+    if (pickMode || (holeMode && cutOn)){ canvas.style.cursor = 'crosshair'; return; }
+    const h = hitHandle(x, y);
+    canvas.style.cursor = h === 'rot' ? 'crosshair' : h ? 'nwse-resize' : hitTest(x, y) ? 'grab' : (bgImage && !bgLocked ? 'move' : 'default');
     return;
   }
-  const l = hitTest(x, y);
-  if (l) { dragging = true; sel(l.id); dox = x - l.x; doy = y - l.y; }
-  else if (bgImage && !bgLocked) { draggingBg = true; bgDox = x - bgPanX; bgDoy = y - bgPanY; selId = null; updateLayers(); render(); }
-  else { selId = null; updateLayers(); render(); }
-}, { passive: false });
-
-canvas.addEventListener('touchmove', e => {
-  e.preventDefault();
-  const { x, y } = getCoords(e);
-  if (rotating) {
-    const l = layers.find(l => l.id === selId);
-    if (l) {
-      const angle = Math.atan2(y - l.y, x - l.x);
-      l.rotate = Math.round(rotateStartRot + (angle - rotateStartAngle) * 180 / Math.PI);
-      setSlider('rotRange', 'rotV', l.rotate);
-      render();
-    }
-  } else if (resizing) {
-    const l = layers.find(l => l.id === selId);
-    if (l) {
-      const dist = Math.hypot(x - l.x, y - l.y);
-      const startDist = Math.hypot(resizeStartX - l.x, resizeStartY - l.y);
-      const newSize = Math.max(10, Math.round(resizeStartFontSize * dist / (startDist || 1)));
-      l.fontSize = newSize;
-      setSlider('fsRange', 'fsV', newSize);
-      render();
-    }
-  } else if (dragging) {
-    const l = layers.find(l => l.id === selId);
-    if (l) { l.x = x - dox; l.y = y - doy; render(); }
-  } else if (draggingBg) {
-    bgPanX = x - bgDox; bgPanY = y - bgDoy; render();
-  }
-}, { passive: false });
-
-// 모바일: 더블탭으로 텍스트 편집
-let lastTapTime = 0;
-canvas.addEventListener('touchend', e => {
-  const now = Date.now();
-  if (now - lastTapTime < 300 && !dragging && !resizing && !rotating) {
-    const { x, y } = getCoords(e);
-    const l = hitTest(x, y);
-    if (l) {
-      sel(l.id);
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
-      document.getElementById('tab-text').style.display = 'block';
-      document.querySelector('.tab-btn').classList.add('active');
-      const inp = document.getElementById('txtInput');
-      inp.focus();
-    }
-  }
-  lastTapTime = now;
-  dragging = false; draggingBg = false; resizing = false; rotating = false;
-});
-
-const uz = document.getElementById('uploadZone');
-uz.addEventListener('dragover',e=>{e.preventDefault();uz.style.borderColor='var(--accent)';});
-uz.addEventListener('dragleave',()=>{uz.style.borderColor='';});
-uz.addEventListener('drop',e=>{
-  e.preventDefault(); uz.style.borderColor='';
-  const f=e.dataTransfer.files[0];
-  if(f&&f.type.startsWith('image/')) loadImage({target:{files:[f]}});
-});
-
-document.addEventListener('keydown',e=>{
-  if(e.key==='Delete'&&selId&&document.activeElement.tagName!=='INPUT') delLayer(selId);
-});
-
-// 🌟 문서가 열리자마자 폰트가 캐싱될 때까지 기다렸다가 렌더링 시작 🌟
-window.onload = async () => {
-  const l = newLayer({ text: '텍스트 입력' });
-  layers.push(l);
-  selId = l.id;
-  document.getElementById('txtInput').value = l.text;
-  document.getElementById('guide').classList.add('hidden');
-  updateLayers();
-  drawGradWheel();
-
-  // 브라우저 폰트 캐싱 대기 (강제 숨김 처리된 폰트들이 모두 다운로드 될 때까지 기다립니다)
-  await document.fonts.ready;
+  moved = true;
+  const l = selLayer();
+  if (mode === 'drag' && l){
+    let nx = x - start.dx, ny = y - start.dy; guideX = guideY = false;
+    if (snapOn){ const t = 7 * uiScale(); if (Math.abs(nx - W / 2) < t){ nx = W / 2; guideX = true; } if (Math.abs(ny - H / 2) < t){ ny = H / 2; guideY = true; } }
+    l.x = Math.round(nx * 10) / 10; l.y = Math.round(ny * 10) / 10;
+  } else if (mode === 'resize' && l){
+    l.fontSize = Math.max(8, Math.min(600, Math.round(start.fs * Math.hypot(x - l.x, y - l.y) / (start.d || 1))));
+    draft.fontSize = l.fontSize; syncUI();
+  } else if (mode === 'rotate' && l){
+    let r = start.rot + (Math.atan2(y - l.y, x - l.x) - start.a) * 180 / Math.PI;
+    r = ((r + 180) % 360 + 360) % 360 - 180;
+    l.rotate = e.shiftKey ? Math.round(r / 15) * 15 : Math.round(r);
+    draft.rotate = l.rotate; syncUI();
+  } else if (mode === 'pan'){ bgPanX = x - start.dx; bgPanY = y - start.dy; }
   render();
-};
+});
+function endPointer(){
+  if (mode && moved){ commit(); if (mode === 'resize') renderLayerList(); }
+  mode = null; guideX = guideY = false; canvas.style.cursor = 'default'; render();
+}
+canvas.addEventListener('pointerup', endPointer);
+canvas.addEventListener('pointercancel', endPointer);
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+canvas.addEventListener('dblclick', e => { const { x, y } = coords(e); const l = hitTest(x, y); if (l) openTextEdit(l.id); });
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape'){ document.querySelectorAll('.modal').forEach(m => m.hidden = true); if (pickMode || holeMode){ pickMode = holeMode = false; syncCutUI(); canvas.style.cursor = 'default'; } return; }
+  const tag = document.activeElement && document.activeElement.tagName;
+  const typing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+  const mod = e.ctrlKey || e.metaKey, key = e.key.toLowerCase();
+  if (typing) return;
+  if (mod && key === 'z'){ e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+  if (mod && key === 'y'){ e.preventDefault(); redo(); return; }
+  const l = selLayer(); if (!l) return;
+  if (e.key === 'Delete' || e.key === 'Backspace'){ e.preventDefault(); delLayer(l.id); }
+  else if (mod && key === 'd'){ e.preventDefault(); dupLayer(l.id); }
+  else if (e.key.startsWith('Arrow') && !l.locked){
+    e.preventDefault(); const st = e.shiftKey ? 10 : 1;
+    if (e.key === 'ArrowLeft') l.x -= st; if (e.key === 'ArrowRight') l.x += st;
+    if (e.key === 'ArrowUp') l.y -= st; if (e.key === 'ArrowDown') l.y += st;
+    render(); scheduleCommit();
+  }
+});
+document.addEventListener('paste', e => {
+  const tag = document.activeElement && document.activeElement.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+  const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith('image/'));
+  if (item){ e.preventDefault(); loadImageFile(item.getAsFile()); }
+});
+
+/* ─────────── 미리보기 재생 ─────────── */
+function tick(){ if (playing && hasAnim() && !document.hidden) render(); requestAnimationFrame(tick); }
+function togglePlay(){
+  playing = !playing; t0 = performance.now();
+  $('playBtn').classList.toggle('on', playing);
+  render();
+}
+function toggleSnap(){ snapOn = !snapOn; $('snapBtn').classList.toggle('on', snapOn); }
+
+/* ─────────── 내보내기 ─────────── */
+function openModal(id){ $(id).hidden = false; }
+function closeModal(id){ $(id).hidden = true; }
+function openExport(fmt){
+  if (fmt) exState.fmt = fmt;
+  if (!$('exName').value) $('exName').value = 'stamp_' + new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  $('exPreview').hidden = true; $('exProg').hidden = true;
+  syncExportUI(); openModal('exportModal');
+}
+function syncExportUI(){
+  document.querySelectorAll('[data-ex]').forEach(seg => seg.querySelectorAll('button').forEach(b => b.classList.toggle('active', String(exState[seg.dataset.ex]) === b.dataset.v)));
+  const gif = exState.fmt === 'gif';
+  $('gifOpts').style.display = gif ? '' : 'none';
+  $('copyBtn').style.display = gif ? 'none' : '';
+  $('matteField').style.display = (gif && bgColor === 'transparent') ? '' : 'none';
+  if (gif){
+    const anim = hasAnim(), N = anim ? Math.max(2, Math.round(loopSec * exState.fps)) : 1;
+    $('exInfo').innerHTML = anim
+      ? `<b>${N}프레임</b> · ${loopSec.toFixed(1)}초 무한 반복 · ${exState.size}×${exState.size}px`
+      : `움직임이 설정된 레이어가 없어서 <b>정지 GIF</b>로 저장돼요.<br>움직임 탭에서 효과를 골라 보세요!`;
+  } else {
+    $('exInfo').innerHTML = `${exState.size}×${exState.size}px PNG · ${bgColor === 'transparent' && (!bgImage || cutOn) ? '투명 배경' : '배경 포함'}${hasAnim() ? '<br>정지 이미지라 움직임은 빠지고 기본 모습으로 저장돼요.' : ''}`;
+  }
+}
+function renderFrame(size, phase){
+  const c = document.createElement('canvas'); c.width = c.height = size;
+  const x = c.getContext('2d'); x.setTransform(size / W, 0, 0, size / H, 0, 0);
+  paintScene(x, phase); return c;
+}
+function setProgress(v){ $('exProg').firstElementChild.style.width = Math.round(v * 100) + '%'; }
+async function runExport(){
+  if (exporting) return;
+  exporting = true; $('exGo').disabled = true; $('exGo').textContent = '만드는 중…';
+  $('exPreview').hidden = true; $('exProg').hidden = false; setProgress(0);
+  const S = exState.size, name = ($('exName').value.trim() || 'stamp').replace(/[\\/:*?"<>|]/g, '_');
+  try {
+    let blob, file;
+    if (exState.fmt === 'png'){
+      const c = renderFrame(S, null);
+      blob = await new Promise(r => c.toBlob(r, 'image/png')); file = name + '.png'; setProgress(1);
+    } else {
+      const anim = hasAnim(), fps = exState.fps;
+      const N = anim ? Math.max(2, Math.round(loopSec * fps)) : 1;
+      const frames = [];
+      for (let i = 0; i < N; i++){
+        const c = renderFrame(S, anim ? i / N : null);
+        frames.push(c.getContext('2d').getImageData(0, 0, S, S));
+        setProgress((i + 1) / N * 0.4);
+        if (i % 3 === 2) await nextTick();
+      }
+      const bytes = await encodeGIF(frames, S, S, Math.round(100 / fps), hexRgb($('matteColor').value), p => setProgress(0.4 + p * 0.6));
+      blob = new Blob([bytes], { type:'image/gif' }); file = name + '.gif';
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = file; document.body.appendChild(a); a.click(); a.remove();
+    $('exImg').src = url; $('exResName').textContent = file;
+    $('exResSize').textContent = `${S}×${S}px · ${(blob.size / 1024).toFixed(blob.size > 102400 ? 0 : 1)}KB`;
+    $('exResLink').href = url; $('exResLink').download = file;
+    $('exPreview').hidden = false; toast('저장했어요');
+  } catch (err){ console.error(err); toast('저장 중 오류가 났어요'); }
+  $('exProg').hidden = true; exporting = false; $('exGo').disabled = false; $('exGo').textContent = '저장하기';
+}
+async function copyPng(){
+  try {
+    const c = renderFrame(exState.size, null);
+    const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    toast('이미지를 클립보드에 복사했어요');
+  } catch (e){ toast('이 브라우저에선 이미지 복사가 안 돼요'); }
+}
+
+/* ─────────── OOC ─────────── */
+function renderOOC(){
+  $('oocList').innerHTML = OOC_LIST.length ? OOC_LIST.map((o, i) => `
+    <div class="ooc-item">
+      <div class="ooc-top">
+        <div class="ooc-emoji">${o.emoji}</div>
+        <div class="ooc-meta"><div class="ooc-title">${esc(o.title)}</div><div class="ooc-desc">${esc(o.desc)}</div></div>
+        <button class="btn ${o.text ? 'btn-grad' : 'btn-ghost'}" ${o.text ? '' : 'disabled'} onclick="copyOOC(${i})">복사</button>
+      </div>
+      <div class="ooc-body${o.text ? '' : ' empty'}">${o.text ? esc(o.text) : '내용 준비 중'}</div>
+    </div>`).join('') : '<div class="empty-state">등록된 OOC가 없어요.</div>';
+}
+async function copyOOC(i){
+  const t = OOC_LIST[i]?.text; if (!t) return;
+  try { await navigator.clipboard.writeText(t); }
+  catch (e){ const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+  toast('OOC를 복사했어요');
+}
+
+/* ─────────── 기타 ─────────── */
+let toastTimer;
+function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1800); }
+function clearAll(){
+  if (!confirm('모든 작업을 지우고 처음부터 시작할까요?')) return;
+  layers = []; selId = null; bgImage = null; bgColor = 'transparent';
+  bgOriginal = null; origData = null; cutOn = false; holeMode = false; pickMode = false; holeSeeds = []; syncCutUI();
+  baseScale = bgScale = 1; bgPanX = bgPanY = 0; bgLocked = false; loopSec = 1.6;
+  draft = { ...DEFAULTS }; $('fileInput').value = '';
+  addTextLayer(DEFAULTS.text); syncBgUI();
+}
+
+/* ─────────── 프리셋 미리보기 ─────────── */
+function drawPresetPreviews(){
+  document.querySelectorAll('#presetGrid .pv').forEach((cv, i) => {
+    const r = cv.getBoundingClientRect(), w = Math.round(r.width) || 80, hh = Math.round(r.height) || 48, d = Math.min(2, devicePixelRatio || 1);
+    cv.width = w * d; cv.height = hh * d;
+    const c = cv.getContext('2d'); c.setTransform(d, 0, 0, d, 0, 0); c.clearRect(0, 0, w, hh);
+    const p = PRESETS[i].p, fs = 21, k = fs / 72;
+    const l = { ...DEFAULTS, font: DEFAULTS.font, ...p, text: '좋아', fontSize: fs, x: w / 2, y: hh / 2, rotate: 0, opacity: 100, anim: 'none' };
+    ['strokeWidth','shadowBlur','shadowX','shadowY','bubblePad','bubbleBorderW'].forEach(key => l[key] = (+l[key] || 0) * k);
+    if (l.bubble === 'bubble') l.y -= 3;
+    drawLayerCore(c, l, animState(l, null));
+  });
+}
+
+/* ─────────── 초기화 ─────────── */
+function buildUI(){
+  $('fontSel').innerHTML = FONTS.map(([g, list]) => `<optgroup label="${g}">${list.map(([v, n]) => `<option value="${esc(v)}">${n}</option>`).join('')}</optgroup>`).join('');
+  document.querySelectorAll('[data-colors]').forEach(el => {
+    const p = el.dataset.colors;
+    el.innerHTML = `<input type="color" data-p="${p}">` + el.dataset.list.split(',').map(c => `<button class="dot" style="--c:${c}" data-set="${p}" data-val="${c}" title="${c}"></button>`).join('');
+  });
+  $('animGrid').innerHTML = ANIMS.map(([v, n, i]) => `<button data-v="${v}">${n}</button>`).join('');
+  $('presetGrid').innerHTML = PRESETS.map((p, i) => `<button class="preset" onclick="applyPreset(${i})"><canvas class="pv" style="background:${p.tile || '#f4f4f5'}"></canvas><span class="pn">${p.name}</span></button>`).join('');
+  $('bgGrid').innerHTML = BG_LIST.map(b => {
+    const bg = b === 'transparent' ? 'var(--checker)' : b.startsWith('grad:') ? `linear-gradient(135deg,${b.split(':')[1]},${b.split(':')[2]})` : b;
+    return `<button class="bg-swatch" data-bg="${b}" style="background:${bg};background-size:${b === 'transparent' ? '12px 12px' : 'auto'}" title="${b === 'transparent' ? '투명' : b}"></button>`;
+  }).join('') + `<input type="color" id="bgCustom" value="#ffd6e7" title="직접 고르기">`;
+}
+function bindUI(){
+  const NUM = new Set(['animCycles']);
+  document.querySelectorAll('[data-p]').forEach(el => {
+    const p = el.dataset.p;
+    if (el.classList.contains('seg')) el.addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (b) setProp(p, NUM.has(p) ? +b.dataset.v : b.dataset.v); });
+    else if (el.hasAttribute('data-bool')) el.addEventListener('click', () => setProp(p, !cur()[p]));
+    else el.addEventListener('input', () => setProp(p, el.type === 'range' ? parseFloat(el.value) : el.value));
+  });
+  document.querySelectorAll('[data-set]').forEach(el => el.addEventListener('click', () => setProp(el.dataset.set, el.dataset.val)));
+  document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+  $('bgGrid').addEventListener('click', e => { const s = e.target.closest('.bg-swatch'); if (s) setBg(s.dataset.bg); });
+  $('bgCustom').addEventListener('input', e => setBg(e.target.value));
+  $('bgScaleRange').addEventListener('input', e => updateBgScale(+e.target.value));
+  $('loopRange').addEventListener('input', e => { loopSec = +e.target.value; $('loopV').textContent = loopSec.toFixed(1) + '초'; t0 = performance.now(); scheduleCommit(); });
+  $('fileInput').addEventListener('change', e => loadImageFile(e.target.files[0]));
+  document.querySelectorAll('[data-ex]').forEach(seg => seg.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    const k = seg.dataset.ex; exState[k] = k === 'fmt' ? b.dataset.v : +b.dataset.v;
+    $('exPreview').hidden = true; syncExportUI();
+  }));
+  // 그라데이션 방향 휠
+  const wc = $('gradWheel'); let wd = false;
+  const ang = e => { const r = wc.getBoundingClientRect(); return Math.round(Math.atan2(e.clientY - r.top - r.height / 2, e.clientX - r.left - r.width / 2) * 180 / Math.PI); };
+  wc.addEventListener('pointerdown', e => { wd = true; wc.setPointerCapture(e.pointerId); setProp('gradDir', ang(e)); });
+  wc.addEventListener('pointermove', e => { if (wd) setProp('gradDir', ang(e)); });
+  wc.addEventListener('pointerup', () => wd = false);
+  // 드래그 & 드롭
+  [[$('uploadZone'), $('uploadZone')], [$('canvasWrap'), $('canvasWrap')]].forEach(([el]) => {
+    el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('drag'); });
+    el.addEventListener('dragleave', () => el.classList.remove('drag'));
+    el.addEventListener('drop', e => { e.preventDefault(); el.classList.remove('drag'); loadImageFile(e.dataTransfer.files[0]); });
+  });
+  window.addEventListener('resize', render);
+  $('cutTol').addEventListener('input', e => { $('cutTolV').textContent = e.target.value; scheduleCut(); });
+  $('cutColor').addEventListener('input', () => { syncCutUI(); scheduleCut(); });
+  ['cutSoft'].forEach(id => $(id).addEventListener('click', e => { e.currentTarget.classList.toggle('on'); scheduleCut(); }));
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+  buildUI(); bindUI(); renderOOC();
+  let restored = false;
+  try { const s = localStorage.getItem(SAVE_KEY); if (s){ applySnap(s); restored = layers.length > 0; } } catch (e) {}
+  if (!restored){ layers = []; addTextLayer(DEFAULTS.text); }
+  else { hist = [snapshot()]; hIdx = 0; }
+  syncBgUI(); syncUI(); renderLayerList(); updUndo(); render();
+  requestAnimationFrame(tick);
+  // 웹폰트를 미리 받아두고 다시 그리기
+  const all = FONTS.flatMap(g => g[1].map(f => f[0]));
+  await Promise.allSettled(all.flatMap(f => [document.fonts.load(`40px ${f}`, '가A'), document.fonts.load(`700 40px ${f}`, '가A')]));
+  await document.fonts.ready;
+  wCache.clear(); inkCache.clear(); render(); renderLayerList(); drawPresetPreviews();
+});
+document.fonts && document.fonts.addEventListener && document.fonts.addEventListener('loadingdone', () => { wCache.clear(); inkCache.clear(); render(); drawPresetPreviews(); });
 </script>
 </body>
 </html>
