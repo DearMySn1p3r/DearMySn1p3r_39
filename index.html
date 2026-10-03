@@ -441,8 +441,9 @@ input[type=color]::-moz-color-swatch{border:1.5px solid #fff;border-radius:50%}
   <div class="card">
     <div class="card-hd">이모티콘 세트 <span class="count-pill" id="setPill">0개</span></div>
     <p class="hint" id="editingNote" style="margin:-4px 0 10px"></p>
+    <button class="btn btn-ghost btn-full" id="overwriteBtn" onclick="saveToSet(false)" style="margin-bottom:6px;display:none"></button>
     <div class="row">
-      <button class="btn btn-primary grow" id="saveSetBtn" onclick="saveToSet(false)">세트에 담기</button>
+      <button class="btn btn-primary grow" id="saveSetBtn" onclick="saveToSet(true)">세트에 담기</button>
       <button class="btn btn-ghost grow" onclick="openSet()">세트 보기</button>
     </div>
     <div class="row mt8">
@@ -2157,9 +2158,12 @@ function updSetUI(){
   const n = setData.items.length, idx = setData.items.findIndex(i => i.id === currentItemId);
   const thumbEdit = currentItemId === 'THUMB';
   $('setPill').textContent = n + '개';
-  $('saveSetBtn').textContent = thumbEdit ? '대표 저장' : idx >= 0 ? '이 이모티콘 저장' : '세트에 담기';
-  $('editingNote').textContent = thumbEdit ? `대표 이모티콘을 편집 중이에요${dirty ? ' · 저장 안 됨' : ''}`
-    : idx >= 0 ? `${idx + 1}번 이모티콘을 편집 중이에요${dirty ? ' · 저장 안 됨' : ''}` : '지금 만든 이모티콘을 세트에 모아 보세요.';
+  $('saveSetBtn').textContent = '세트에 담기';
+  const ow = $('overwriteBtn');
+  ow.style.display = thumbEdit || idx >= 0 ? '' : 'none';
+  ow.textContent = thumbEdit ? '대표 이모티콘에 덮어쓰기' : `${idx + 1}번에 덮어쓰기`;
+  $('editingNote').textContent = thumbEdit ? `대표 이모티콘을 불러왔어요${dirty ? ' · 바뀐 내용 있음' : ''}`
+    : idx >= 0 ? `${idx + 1}번을 불러왔어요${dirty ? ' · 바뀐 내용 있음' : ''} · 담으면 새로 추가돼요` : '세트에 담기를 누를 때마다 새 이모티콘으로 추가돼요.';
   $('setCount').textContent = `${n}개`;
   if (!$('setModal').hidden) renderSetView();
 }
@@ -2293,7 +2297,7 @@ function renderSetView(){
       <div class="phone">
         <div class="island"></div>
         <div class="status">
-          <span>12:00</span>
+          <span>9:41</span>
           <span class="ic">
             <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
             <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor"><path d="M7.5 2.2c2.1 0 4 .8 5.4 2.1l1.1-1.1A9.2 9.2 0 007.5.6 9.2 9.2 0 001 3.2l1.1 1.1A7.6 7.6 0 017.5 2.2zm0 3.2c1.2 0 2.3.4 3.2 1.2l1.1-1.1a6.2 6.2 0 00-8.6 0l1.1 1.1c.9-.8 2-1.2 3.2-1.2zm0 3.1c-.5 0-.9.2-1.2.5L7.5 10.2 8.7 9c-.3-.3-.7-.5-1.2-.5z"/></svg>
