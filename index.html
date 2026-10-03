@@ -462,7 +462,8 @@ input[type=color]::-moz-color-swatch{border:1.5px solid #fff;border-radius:50%}
         <div class="sub-hd">바깥 선 색</div>
         <div class="color-row" data-colors="strokeColor2" data-list="#24193a,#ffffff,#ff5c8a,#ffd43b,#4dabf7,#8b5cf6"></div>
       </div>
-      <div class="field"><div class="flabel">두께 / 세기 <span data-show="strokeWidth"></span></div><input type="range" data-p="strokeWidth" min="0" max="40"></div>
+      <div class="field"><div class="flabel"><b id="swLabel" style="font-weight:400">두께</b> <span data-show="strokeWidth"></span></div><input type="range" data-p="strokeWidth" min="0" max="40"></div>
+      <div class="field" id="sw2Field"><div class="flabel">바깥 선 두께 <span data-show="strokeWidth2"></span></div><input type="range" data-p="strokeWidth2" min="0" max="30"></div>
     </div>
 
     <div class="card">
@@ -496,7 +497,9 @@ input[type=color]::-moz-color-swatch{border:1.5px solid #fff;border-radius:50%}
   <!-- MOTION -->
   <section class="tab-pane" data-pane="motion" hidden>
     <div class="card">
-      <div class="card-hd">레이어 움직임<button class="hd-act" onclick="resetStyle('anim')">없애기</button></div>
+      <div class="card-hd">움직임<button class="hd-act" onclick="resetStyle('anim')">없애기</button></div>
+      <div class="seg" id="motionTarget" style="margin-bottom:12px"><button data-v="text" class="active">글자 레이어</button><button data-v="image">사진</button></div>
+      <p class="hint" id="motionHint" style="margin:-4px 0 10px;display:none"></p>
       <div class="seg anim-grid" data-p="anim" id="animGrid"></div>
       <div id="animOpts">
         <div class="field">
@@ -738,7 +741,7 @@ const DEFAULTS = {
   text:'텍스트 입력', font:"'Jua','Noto Sans KR',sans-serif", fontSize:72, letterSpacing:0, lineHeight:1.15, rotate:0,
   align:'center', bold:false, italic:false,
   color:'#24193a', useGrad:false, g1:'#ff7a9c', g2:'#8b5cf6', gradDir:0,
-  outline:'line', strokeColor:'#ffffff', strokeColor2:'#24193a', strokeWidth:14,
+  outline:'line', strokeColor:'#ffffff', strokeColor2:'#24193a', strokeWidth:14, strokeWidth2:12,
   shadowColor:'#000000', shadowBlur:0, shadowX:0, shadowY:0, opacity:100,
   bubble:'none', bubbleColor:'#ffffff', bubbleBorder:'#24193a', bubblePad:22, bubbleBorderW:4,
   anim:'none', animCycles:1, animPower:50, animDelay:0,
@@ -758,7 +761,7 @@ const ANIM_NAME = Object.fromEntries(ANIMS.map(a => [a[0], a[1]]));
 const PRESETS = [
   { name:'화이트 스티커', p:{ color:'#1c1c1f', useGrad:false, outline:'line', strokeColor:'#ffffff', strokeWidth:18, shadowColor:'#000000', shadowBlur:14, shadowX:0, shadowY:3, bubble:'none' } },
   { name:'블랙 라인', p:{ color:'#ffffff', useGrad:false, outline:'line', strokeColor:'#1c1c1f', strokeWidth:14, shadowBlur:0, shadowX:0, shadowY:0, bubble:'none' } },
-  { name:'코랄', p:{ color:'#ff7466', useGrad:false, outline:'double', strokeColor:'#ffffff', strokeColor2:'#ffd3cc', strokeWidth:12, shadowColor:'#ff8f80', shadowBlur:12, shadowX:0, shadowY:3, bubble:'none' } },
+  { name:'코랄', p:{ color:'#ff7466', useGrad:false, outline:'double', strokeColor:'#ffffff', strokeColor2:'#ffd3cc', strokeWidth:12, strokeWidth2:10, shadowColor:'#ff8f80', shadowBlur:12, shadowX:0, shadowY:3, bubble:'none' } },
   { name:'파스텔', p:{ useGrad:true, g1:'#ffadc6', g2:'#b5a8ff', gradDir:90, outline:'line', strokeColor:'#ffffff', strokeWidth:14, shadowColor:'#8b7fb8', shadowBlur:10, shadowX:0, shadowY:2, bubble:'none' } },
   { name:'말풍선', p:{ color:'#1c1c1f', useGrad:false, outline:'none', bubble:'bubble', bubbleColor:'#ffffff', bubbleBorder:'#2b2b2f', bubbleBorderW:3, bubblePad:30, shadowBlur:0, shadowX:0, shadowY:0 } },
   { name:'블랙 태그', p:{ color:'#ffffff', useGrad:false, outline:'none', bubble:'pill', bubbleColor:'#1c1c1f', bubbleBorder:'#ffffff', bubbleBorderW:0, bubblePad:32, shadowBlur:0, shadowX:0, shadowY:0 } },
@@ -786,7 +789,14 @@ let exporting = false;
 
 const selLayer = () => layers.find(l => l.id === selId) || null;
 const cur = () => selLayer() || draft;
-const hasAnim = () => layers.some(l => !l.hidden && l.anim && l.anim !== 'none');
+const IMG_ANIM_DEFAULT = { anim:'none', animCycles:1, animPower:50, animDelay:0 };
+const ANIM_KEYS = new Set(Object.keys(IMG_ANIM_DEFAULT));
+const TEXT_ONLY_ANIMS = new Set(['wave','typing','rainbow']);
+let bgAnim = { ...IMG_ANIM_DEFAULT }, motionTarget = 'text';
+const bgAnimOn = () => !!bgImage && bgAnim.anim !== 'none' && !TEXT_ONLY_ANIMS.has(bgAnim.anim);
+const hasAnim = () => bgAnimOn() || layers.some(l => !l.hidden && l.anim && l.anim !== 'none');
+const editingImage = p => motionTarget === 'image' && ANIM_KEYS.has(p);
+const valOf = p => editingImage(p) ? bgAnim[p] : cur()[p];
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const hexRgb = h => { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
 
@@ -838,7 +848,7 @@ function inkOffsets(font, lines, ls){
 function bubblePads(l){ const px = l.bubble !== 'none' ? (+l.bubblePad || 0) : 0; return [px, px * 0.75]; }
 function getBox(l){
   const L = layoutText(l), [px, py] = bubblePads(l);
-  const sw = l.outline === 'double' ? l.strokeWidth + 5 : l.outline === 'line' ? l.strokeWidth / 2 : 0;
+  const sw = l.outline === 'double' ? l.strokeWidth / 2 + (+l.strokeWidth2 || 0) : l.outline === 'line' ? l.strokeWidth / 2 : 0;
   return { L, hw: L.w / 2 + px + sw + 8, hh: L.h / 2 + py + sw + 8 };
 }
 
@@ -933,7 +943,7 @@ function shadowPass(c, draw, color, blur, ox, oy){
 function silhouette(c, l, L, st, ox, oy){
   c.fillStyle = '#000'; c.strokeStyle = '#000';
   if (l.bubble !== 'none'){ paintBubble(c, l, L, ox, oy, '#000', '#000'); c.fillStyle = '#000'; }
-  const sw = l.outline === 'double' ? l.strokeWidth * 2 + 10 * l.fontSize / 72 : l.outline === 'line' ? l.strokeWidth : 0;
+  const sw = l.outline === 'double' ? l.strokeWidth + 2 * (+l.strokeWidth2 || 0) : l.outline === 'line' ? l.strokeWidth : 0;
   if (sw > 0){ c.lineWidth = sw; eachGlyph(L, l, st, (ch, x, y) => c.strokeText(ch, x + ox, y + oy)); }
   eachGlyph(L, l, st, (ch, x, y) => c.fillText(ch, x + ox, y + oy));
 }
@@ -973,8 +983,8 @@ function drawLayerCore(c, l, st){
     for (let g = 3; g >= 0; g--)
       shadowPass(c, (ox, oy) => { c.fillStyle = '#000'; glyphs((ch, x, y) => c.fillText(ch, x + ox, y + oy)); }, l.strokeColor, (8 + g * 10) * k, 0, 0);
   }
-  if (l.outline === 'double' && l.strokeWidth > 0){
-    c.strokeStyle = l.strokeColor2; c.lineWidth = l.strokeWidth * 2 + 10 * l.fontSize / 72;
+  if (l.outline === 'double' && (l.strokeWidth > 0 || l.strokeWidth2 > 0)){
+    c.strokeStyle = l.strokeColor2; c.lineWidth = l.strokeWidth + 2 * (+l.strokeWidth2 || 0);
     glyphs((ch, x, y) => c.strokeText(ch, x, y));
   }
   if ((l.outline === 'line' || l.outline === 'double') && l.strokeWidth > 0){
@@ -1002,14 +1012,24 @@ function drawLayer(c, l, phase){
   drawLayerCore(sx, l, st);
   c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.globalAlpha = a; c.drawImage(scratch, 0, 0); c.restore();
 }
-function paintBg(c){
+function paintBg(c, phase){
   if (bgColor.startsWith('grad:')){
     const [, a, b] = bgColor.split(':'); const g = c.createLinearGradient(0, 0, W, H);
     g.addColorStop(0, a); g.addColorStop(1, b); c.fillStyle = g; c.fillRect(0, 0, W, H);
   } else if (bgColor !== 'transparent'){ c.fillStyle = bgColor; c.fillRect(0, 0, W, H); }
-  if (bgImage){ c.imageSmoothingQuality = 'high'; c.drawImage(bgImage, bgPanX, bgPanY, bgImage.width * bgScale, bgImage.height * bgScale); }
+  if (!bgImage) return;
+  const dw = bgImage.width * bgScale, dh = bgImage.height * bgScale;
+  c.imageSmoothingQuality = 'high';
+  if (!bgAnimOn() || phase == null){ c.drawImage(bgImage, bgPanX, bgPanY, dw, dh); return; }
+  const st = animState({ ...bgAnim, fontSize: Math.min(dw, dh) * 0.22, text:'' }, phase);
+  c.save();
+  c.globalAlpha = Math.max(0, Math.min(1, st.a));
+  c.translate(bgPanX + dw / 2 + st.dx, bgPanY + dh / 2 + st.dy);
+  c.rotate(st.rot * Math.PI / 180); c.scale(st.sx, st.sy);
+  c.drawImage(bgImage, -dw / 2, -dh / 2, dw, dh);
+  c.restore();
 }
-function paintScene(c, phase){ paintBg(c); layers.forEach(l => drawLayer(c, l, phase)); }
+function paintScene(c, phase){ paintBg(c, phase); layers.forEach(l => drawLayer(c, l, phase)); }
 const phaseNow = () => ((performance.now() - t0) / 1000 / loopSec) % 1;
 const uiScale = () => W / (canvas.getBoundingClientRect().width || W);
 
@@ -1091,6 +1111,11 @@ function toggleLayer(id, key){
   l[key] = !l[key]; renderLayerList(); render(); updStageInfo(); commit();
 }
 function setProp(p, v){
+  if (editingImage(p)){
+    if (!bgImage) return toast('먼저 사진을 올려 주세요');
+    if (p === 'anim' && TEXT_ONLY_ANIMS.has(v)) return;
+    bgAnim[p] = v; t0 = performance.now(); syncUI(); render(); scheduleCommit(); return;
+  }
   draft[p] = v;
   const l = selLayer(); if (l) l[p] = v;
   if (p === 'font') document.fonts.load(`40px ${v}`, '가A').then(() => { wCache.clear(); inkCache.clear(); render(); });
@@ -1106,6 +1131,7 @@ const RESETS = {
 RESETS.all = { p:{ ...RESETS.color.p, ...RESETS.outline.p, ...RESETS.bubble.p, ...RESETS.shadow.p, opacity:100 }, msg:'스타일을 모두 없앴어요' };
 function resetStyle(g){
   const r = RESETS[g]; if (!r) return;
+  if (g === 'anim' && motionTarget === 'image'){ bgAnim.anim = 'none'; syncUI(); render(); commit(); return toast('사진 움직임을 없앴어요'); }
   Object.assign(draft, r.p); const l = selLayer(); if (l) Object.assign(l, r.p);
   syncUI(); renderLayerList(); render(); commit(); toast(r.msg);
 }
@@ -1139,26 +1165,34 @@ const FMT = {
 function syncUI(){
   const s = cur();
   document.querySelectorAll('[data-p]').forEach(el => {
-    const p = el.dataset.p, v = s[p];
+    const p = el.dataset.p, v = valOf(p);
     if (el.classList.contains('seg')) el.querySelectorAll('[data-v]').forEach(b => b.classList.toggle('active', String(b.dataset.v) === String(v)));
     else if (el.hasAttribute('data-bool')) el.classList.toggle('on', !!v);
     else if (String(el.value) !== String(v)) el.value = v;
   });
-  document.querySelectorAll('[data-show]').forEach(el => { const p = el.dataset.show; el.textContent = (FMT[p] || (x => x))(s[p]); });
+  document.querySelectorAll('[data-show]').forEach(el => { const p = el.dataset.show; el.textContent = (FMT[p] || (x => x))(valOf(p)); });
   document.querySelectorAll('[data-set]').forEach(el => el.classList.toggle('selected', String(s[el.dataset.set]).toLowerCase() === el.dataset.val.toLowerCase()));
   $('gradPanel').hidden = !s.useGrad;
   $('gradPanel').style.display = s.useGrad ? '' : 'none';
   $('doubleRow').style.display = s.outline === 'double' ? '' : 'none';
+  $('sw2Field').style.display = s.outline === 'double' ? '' : 'none';
+  $('swLabel').textContent = s.outline === 'double' ? '안쪽 선 두께' : s.outline === 'glow' ? '빛 세기' : '두께';
   $('strokeLabel').textContent = s.outline === 'glow' ? '빛 색' : s.outline === 'double' ? '안쪽 선 색' : '선 색';
   $('bubbleOpts').style.display = s.bubble === 'none' ? 'none' : '';
-  $('animOpts').classList.toggle('dim', s.anim === 'none');
+  $('animOpts').classList.toggle('dim', valOf('anim') === 'none');
+  const img = motionTarget === 'image';
+  document.querySelectorAll('#motionTarget button').forEach(b => b.classList.toggle('active', b.dataset.v === motionTarget));
+  document.querySelectorAll('#animGrid [data-v]').forEach(b => b.style.display = img && TEXT_ONLY_ANIMS.has(b.dataset.v) ? 'none' : '');
+  $('motionHint').style.display = img ? '' : 'none';
+  $('motionHint').textContent = bgImage ? '업로드한 사진 전체가 움직여요. 배경을 지운 캐릭터 사진에 잘 어울려요.' : '왼쪽에서 사진을 먼저 올려 주세요.';
+  $('animGrid').classList.toggle('dim', img && !bgImage);
   $('selHint').hidden = !!selLayer();
   $('gradPreview').style.background = `linear-gradient(${(s.gradDir || 0) + 90}deg,${s.g1},${s.g2})`;
   drawGradWheel();
   updStageInfo();
 }
 function updStageInfo(){
-  const n = layers.length, a = layers.filter(l => !l.hidden && l.anim !== 'none').length;
+  const n = layers.length, a = layers.filter(l => !l.hidden && l.anim !== 'none').length + (bgAnimOn() ? 1 : 0);
   $('stageInfo').textContent = `레이어 ${n} · 움직임 ${a}`;
 }
 function drawGradWheel(){
@@ -1223,7 +1257,7 @@ function switchTab(name){
 /* ─────────── 히스토리 & 자동 저장 ─────────── */
 const SAVE_KEY = 'stampmaker.v2';
 let hist = [], hIdx = -1, commitTimer = null;
-const snapshot = () => JSON.stringify({ layers, selId, nextId, bgColor, bgScale, bgPanX, bgPanY, loopSec });
+const snapshot = () => JSON.stringify({ layers, selId, nextId, bgColor, bgScale, bgPanX, bgPanY, loopSec, bgAnim });
 function commit(){
   clearTimeout(commitTimer);
   const s = snapshot();
@@ -1242,6 +1276,7 @@ function applySnap(s){
   bgColor = o.bgColor || 'transparent';
   if (bgImage && o.bgScale){ bgScale = o.bgScale; bgPanX = o.bgPanX; bgPanY = o.bgPanY; }
   loopSec = o.loopSec || 1.6;
+  bgAnim = { ...IMG_ANIM_DEFAULT, ...(o.bgAnim || {}) };
   const l = selLayer(); if (l) STYLE_KEYS.forEach(k => draft[k] = l[k]);
   syncBgUI(); syncUI(); renderLayerList(); render();
 }
@@ -1636,7 +1671,7 @@ function clearAll(){
   layers = []; selId = null; bgImage = null; bgColor = 'transparent';
   bgOriginal = null; origData = null; cutOn = false; holeMode = false; pickMode = false; holeSeeds = []; syncCutUI();
   baseScale = bgScale = 1; bgPanX = bgPanY = 0; bgLocked = false; loopSec = 1.6;
-  draft = { ...DEFAULTS }; $('fileInput').value = '';
+  draft = { ...DEFAULTS }; bgAnim = { ...IMG_ANIM_DEFAULT }; $('fileInput').value = '';
   addTextLayer(DEFAULTS.text); syncBgUI();
 }
 
@@ -1648,7 +1683,7 @@ function drawPresetPreviews(){
     const c = cv.getContext('2d'); c.setTransform(d, 0, 0, d, 0, 0); c.clearRect(0, 0, w, hh);
     const p = PRESETS[i].p, fs = 21, k = fs / 72;
     const l = { ...DEFAULTS, font: DEFAULTS.font, ...p, text: '좋아', fontSize: fs, x: w / 2, y: hh / 2, rotate: 0, opacity: 100, anim: 'none' };
-    ['strokeWidth','shadowBlur','shadowX','shadowY','bubblePad','bubbleBorderW'].forEach(key => l[key] = (+l[key] || 0) * k);
+    ['strokeWidth','strokeWidth2','shadowBlur','shadowX','shadowY','bubblePad','bubbleBorderW'].forEach(key => l[key] = (+l[key] || 0) * k);
     if (l.bubble === 'bubble') l.y -= 3;
     drawLayerCore(c, l, animState(l, null));
   });
@@ -1701,6 +1736,7 @@ function bindUI(){
     el.addEventListener('drop', e => { e.preventDefault(); el.classList.remove('drag'); loadImageFile(e.dataTransfer.files[0]); });
   });
   window.addEventListener('resize', render);
+  $('motionTarget').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (!b) return; motionTarget = b.dataset.v; syncUI(); });
   $('cutTol').addEventListener('input', e => { $('cutTolV').textContent = e.target.value; scheduleCut(); });
   $('cutColor').addEventListener('input', () => { syncCutUI(); scheduleCut(); });
   ['cutSoft'].forEach(id => $(id).addEventListener('click', e => { e.currentTarget.classList.toggle('on'); scheduleCut(); }));
