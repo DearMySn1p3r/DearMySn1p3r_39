@@ -884,8 +884,8 @@ const cur = () => selLayer() || draft;
 const IMG_ANIM_DEFAULT = { anim:'none', animCycles:1, animPower:50, animDelay:0 };
 const ANIM_KEYS = new Set(Object.keys(IMG_ANIM_DEFAULT));
 const TEXT_ONLY_ANIMS = new Set(['wave','typing','rainbow']);
-let bgAnim = { ...IMG_ANIM_DEFAULT }, motionTarget = 'text';
-const bgAnimOn = () => !!bgImage && bgAnim.anim !== 'none' && !TEXT_ONLY_ANIMS.has(bgAnim.anim);
+let bgAnim = { ...IMG_ANIM_DEFAULT }, motionTarget = 'text', bgZ = 0, bgHidden = false;
+const bgAnimOn = () => !!bgImage && !bgHidden && bgAnim.anim !== 'none' && !TEXT_ONLY_ANIMS.has(bgAnim.anim);
 const hasAnim = () => bgAnimOn() || layers.some(l => !l.hidden && l.anim && l.anim !== 'none');
 const editingImage = p => motionTarget === 'image' && ANIM_KEYS.has(p);
 const valOf = p => editingImage(p) ? bgAnim[p] : cur()[p];
@@ -1109,7 +1109,9 @@ function paintBg(c, phase){
     const [, a, b] = bgColor.split(':'); const g = c.createLinearGradient(0, 0, W, H);
     g.addColorStop(0, a); g.addColorStop(1, b); c.fillStyle = g; c.fillRect(0, 0, W, H);
   } else if (bgColor !== 'transparent'){ c.fillStyle = bgColor; c.fillRect(0, 0, W, H); }
-  if (!bgImage) return;
+}
+function paintImage(c, phase){
+  if (!bgImage || bgHidden) return;
   const dw = bgImage.width * bgScale, dh = bgImage.height * bgScale;
   c.imageSmoothingQuality = 'high';
   if (!bgAnimOn() || phase == null){ c.drawImage(bgImage, bgPanX, bgPanY, dw, dh); return; }
@@ -1121,7 +1123,12 @@ function paintBg(c, phase){
   c.drawImage(bgImage, -dw / 2, -dh / 2, dw, dh);
   c.restore();
 }
-function paintScene(c, phase){ paintBg(c, phase); layers.forEach(l => drawLayer(c, l, phase)); }
+function paintScene(c, phase){
+  paintBg(c, phase);
+  const z = Math.max(0, Math.min(bgZ, layers.length));
+  layers.forEach((l, i) => { if (i === z) paintImage(c, phase); drawLayer(c, l, phase); });
+  if (z >= layers.length) paintImage(c, phase);
+}
 const phaseNow = () => ((performance.now() - t0) / 1000 / loopSec) % 1;
 const uiScale = () => W / (canvas.getBoundingClientRect().width || W);
 
@@ -1183,23 +1190,35 @@ function select(id){
   syncUI(); renderLayerList(); render();
   if (!document.querySelector('[data-pane=style]').hidden) drawPresetPreviews();
 }
+function getOrder(){ const o = layers.map(l => l.id); if (bgImage) o.splice(Math.max(0, Math.min(bgZ, o.length)), 0, 'IMG'); return o; }
+function setOrder(o, pool = layers){
+  const i = o.indexOf('IMG'); if (i >= 0) bgZ = i;
+  layers = o.filter(t => t !== 'IMG').map(id => pool.find(l => l.id === id)).filter(Boolean);
+}
+function moveZ(token, dir){
+  const o = getOrder(), i = o.indexOf(token), j = i + dir;
+  if (i < 0 || j < 0 || j >= o.length) return;
+  [o[i], o[j]] = [o[j], o[i]]; setOrder(o);
+  renderLayerList(); render(); commit();
+}
+function selectImage(){ if (!bgImage) return; if (selId !== null) select(null); imgSel = true; renderLayerList(); render(); }
+function toggleImg(key){
+  if (key === 'hidden'){ bgHidden = !bgHidden; if (bgHidden) imgSel = false; }
+  else { bgLocked = !bgLocked; syncBgUI(); }
+  renderLayerList(); render(); updStageInfo(); commit();
+}
 function delLayer(id){
   const i = layers.findIndex(l => l.id === id); if (i < 0) return;
-  layers.splice(i, 1);
+  setOrder(getOrder().filter(t => t !== id));
   if (selId === id) selId = layers.length ? layers[Math.min(i, layers.length - 1)].id : null;
   select(selId); commit();
 }
 function dupLayer(id){
   const l = layers.find(x => x.id === id); if (!l) return;
   const c = { ...l, id: nextId++, x: l.x + 24, y: l.y + 24, locked:false };
-  layers.splice(layers.indexOf(l) + 1, 0, c); select(c.id); commit(); toast('레이어를 복제했어요');
+  const o = getOrder(); o.splice(o.indexOf(id) + 1, 0, c.id); setOrder(o, [...layers, c]); select(c.id); commit(); toast('레이어를 복제했어요');
 }
-function moveLayer(id, dir){
-  const i = layers.findIndex(l => l.id === id), j = i + dir;
-  if (i < 0 || j < 0 || j >= layers.length) return;
-  [layers[i], layers[j]] = [layers[j], layers[i]];
-  renderLayerList(); render(); commit();
-}
+function moveLayer(id, dir){ moveZ(id, dir); }
 function toggleLayer(id, key){
   const l = layers.find(x => x.id === id); if (!l) return;
   l[key] = !l[key]; renderLayerList(); render(); updStageInfo(); commit();
@@ -1208,7 +1227,7 @@ function setProp(p, v){
   if (editingImage(p)){
     if (!bgImage) return toast('먼저 사진을 올려 주세요');
     if (p === 'anim' && TEXT_ONLY_ANIMS.has(v)) return;
-    bgAnim[p] = v; t0 = performance.now(); syncUI(); render(); scheduleCommit(); return;
+    bgAnim[p] = v; t0 = performance.now(); syncUI(); render(); renderLayerList(); scheduleCommit(); return;
   }
   draft[p] = v;
   const l = selLayer(); if (l) l[p] = v;
@@ -1236,7 +1255,16 @@ function applyPreset(i){
   toast(`'${PRESETS[i].name}' 스타일 적용`);
 }
 function alignCanvas(type){
-  const l = selLayer(); if (!l) return toast('먼저 레이어를 선택해 주세요');
+  if (!selLayer() && imgSel && bgImage){
+    if (bgLocked) return toast('사진이 잠겨 있어요');
+    const r = imgRect();
+    if (type === 'left') bgPanX = 0; if (type === 'right') bgPanX = W - r.w;
+    if (type === 'center' || type === 'center-all') bgPanX = (W - r.w) / 2;
+    if (type === 'top') bgPanY = 0; if (type === 'bottom') bgPanY = H - r.h;
+    if (type === 'middle' || type === 'center-all') bgPanY = (H - r.h) / 2;
+    render(); commit(); return;
+  }
+  const l = selLayer(); if (!l) return toast('먼저 레이어나 사진을 선택해 주세요');
   const { hw, hh } = getBox(l), pad = 12;
   switch (type){
     case 'left': l.x = hw + pad; break;
@@ -1312,10 +1340,43 @@ const IC = {
   dup: sv('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 012-2h9"/>'),
   del: sv('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>'),
 };
+let thumbFor = null, thumbURL = '';
+function imgThumb(){
+  if (thumbFor !== bgImage){
+    const c = document.createElement('canvas'); c.width = c.height = 72;
+    const x = c.getContext('2d'), s = Math.min(72 / bgImage.width, 72 / bgImage.height);
+    x.drawImage(bgImage, (72 - bgImage.width * s) / 2, (72 - bgImage.height * s) / 2, bgImage.width * s, bgImage.height * s);
+    thumbURL = c.toDataURL(); thumbFor = bgImage;
+  }
+  return thumbURL;
+}
+function imageRow(){
+  const pct = Math.round(bgScale / baseScale * 100);
+  return `
+    <div class="layer${imgSel && !selLayer() ? ' active' : ''}${bgHidden ? ' is-hidden' : ''}" onclick="selectImage()">
+      <div class="layer-main">
+        <div class="layer-thumb" style="background:var(--checker) center/10px 10px"><img src="${imgThumb()}" style="width:100%;height:100%;object-fit:contain"></div>
+        <div class="layer-info">
+          <div class="layer-name">사진</div>
+          <div class="layer-sub">${pct}%${cutOn ? ' · 배경 지움' : ''}${bgAnimOn() ? ' · ' + ANIM_NAME[bgAnim.anim] : ''}</div>
+        </div>
+        <div class="layer-quick">
+          <button class="mini${bgHidden ? '' : ' on'}" title="보이기/숨기기" onclick="event.stopPropagation();toggleImg('hidden')">${bgHidden ? IC.eyeOff : IC.eye}</button>
+          <button class="mini${bgLocked ? ' on' : ''}" title="잠금" onclick="event.stopPropagation();toggleImg('lock')">${bgLocked ? IC.lock : IC.unlock}</button>
+        </div>
+      </div>
+      <div class="layer-acts">
+        <button class="mini" title="앞으로" onclick="event.stopPropagation();moveZ('IMG',1)">${IC.up}</button>
+        <button class="mini" title="뒤로" onclick="event.stopPropagation();moveZ('IMG',-1)">${IC.down}</button>
+        <button class="mini danger" title="사진 빼기" onclick="event.stopPropagation();if(confirm('사진을 뺄까요?'))removeBg()">${IC.del}</button>
+      </div>
+    </div>`;
+}
 function renderLayerList(){
-  const el = $('layerList'); $('layerCount').textContent = layers.length;
-  if (!layers.length){ el.innerHTML = '<div class="empty-state">아직 레이어가 없어요.<br>텍스트나 스티커를 추가해 보세요</div>'; return; }
-  el.innerHTML = [...layers].reverse().map(l => {
+  const el = $('layerList'); $('layerCount').textContent = layers.length + (bgImage ? 1 : 0);
+  if (!layers.length && !bgImage){ el.innerHTML = '<div class="empty-state">아직 레이어가 없어요.<br>텍스트를 추가하거나 사진을 올려 보세요</div>'; return; }
+  el.innerHTML = getOrder().reverse().map(t => t === 'IMG' ? imageRow() : layers.find(x => x.id === t)).map(l => {
+    if (typeof l === 'string') return l;
     const first = splitChars((l.text || '').trim())[0] || 'T';
     const thumbBg = l.bubble !== 'none' ? l.bubbleColor : (l.color.toLowerCase() === '#ffffff' ? '#24193a' : '#fff');
     const thumbCol = l.useGrad ? l.g1 : l.color;
@@ -1350,7 +1411,7 @@ function switchTab(name){
 /* ─────────── 히스토리 & 자동 저장 ─────────── */
 const SAVE_KEY = 'stampmaker.v2';
 let hist = [], hIdx = -1, commitTimer = null;
-const snapshot = () => JSON.stringify({ layers, selId, nextId, bgColor, bgScale, bgPanX, bgPanY, loopSec, bgAnim });
+const snapshot = () => JSON.stringify({ layers, selId, nextId, bgColor, bgScale, bgPanX, bgPanY, loopSec, bgAnim, bgZ, bgHidden });
 function commit(){
   clearTimeout(commitTimer);
   const s = snapshot();
@@ -1369,7 +1430,7 @@ function applySnap(s){
   bgColor = o.bgColor || 'transparent';
   if (bgImage && o.bgScale){ bgScale = o.bgScale; bgPanX = o.bgPanX; bgPanY = o.bgPanY; }
   loopSec = o.loopSec || 1.6;
-  bgAnim = { ...IMG_ANIM_DEFAULT, ...(o.bgAnim || {}) };
+  bgAnim = { ...IMG_ANIM_DEFAULT, ...(o.bgAnim || {}) }; bgZ = o.bgZ || 0; bgHidden = !!o.bgHidden;
   const l = selLayer(); if (l) STYLE_KEYS.forEach(k => draft[k] = l[k]);
   syncBgUI(); syncUI(); renderLayerList(); render();
 }
@@ -1393,11 +1454,11 @@ function loadImageFile(file){
   reader.onload = ev => {
     const img = new Image();
     img.onload = () => {
-      bgImage = img; bgOriginal = img; origData = null; cutOn = false; holeMode = false; holeSeeds = []; syncCutUI();
+      bgImage = img; bgOriginal = img; origData = null; bgZ = 0; bgHidden = false; cutOn = false; holeMode = false; holeSeeds = []; syncCutUI();
       baseScale = Math.max(W / img.width, H / img.height);
       bgScale = baseScale;
       bgPanX = (W - img.width * bgScale) / 2; bgPanY = (H - img.height * bgScale) / 2;
-      imgSel = true; if (selId !== null) select(null); syncBgUI(); render(); commit(); toast('사진을 넣었어요 · 모서리를 끌어 크기 조절');
+      imgSel = true; if (selId !== null) select(null); syncBgUI(); render(); renderLayerList(); commit(); toast('사진을 넣었어요 · 모서리를 끌어 크기 조절');
     };
     img.src = ev.target.result;
   };
@@ -1415,8 +1476,8 @@ function fitBg(how){
   bgPanX = (W - bgImage.width * bgScale) / 2; bgPanY = (H - bgImage.height * bgScale) / 2;
   syncBgUI(); render(); commit();
 }
-function removeBg(){ if (!bgImage) return; imgSel = false; bgImage = null; bgOriginal = null; origData = null; cutOn = false; holeMode = false; holeSeeds = []; syncCutUI(); baseScale = bgScale = 1; bgPanX = bgPanY = 0; $('fileInput').value = ''; syncBgUI(); render(); toast('배경 이미지를 지웠어요'); }
-function toggleBgLock(){ bgLocked = !bgLocked; syncBgUI(); toast(bgLocked ? '배경 이미지를 고정했어요' : '배경 이미지를 움직일 수 있어요'); }
+function removeBg(){ if (!bgImage) return; imgSel = false; bgHidden = false; bgImage = null; bgOriginal = null; origData = null; cutOn = false; holeMode = false; holeSeeds = []; syncCutUI(); baseScale = bgScale = 1; bgPanX = bgPanY = 0; $('fileInput').value = ''; syncBgUI(); render(); renderLayerList(); toast('사진을 뺐어요'); }
+function toggleBgLock(){ bgLocked = !bgLocked; syncBgUI(); renderLayerList(); render(); toast(bgLocked ? '배경 이미지를 고정했어요' : '배경 이미지를 움직일 수 있어요'); }
 
 /* ─────────── 배경 지우기 ─────────── */
 let bgOriginal = null, origData = null, cutOn = false, cutTimer = null, pickMode = false, holeMode = false, holeSeeds = [];
@@ -1459,7 +1520,7 @@ function toggleCut(){
     $('cutColor').value = detectBgColor();
     if (bgColor !== 'transparent'){ bgColor = 'transparent'; syncBgUI(); commit(); }
     runCut();
-  } else { bgImage = bgOriginal; render(); }
+  } else { bgImage = bgOriginal; render(); renderLayerList(); }
   syncCutUI();
 }
 function scheduleCut(){ if (!cutOn) return; clearTimeout(cutTimer); cutTimer = setTimeout(runCut, 80); }
@@ -1506,7 +1567,7 @@ function runCut(){
   }
   const c = document.createElement('canvas'); c.width = w; c.height = h;
   c.getContext('2d').putImageData(out, 0, 0);
-  bgImage = c; render();
+  bgImage = c; render(); renderLayerList();
 }
 function toggleHole(){
   holeMode = !holeMode; pickMode = false; syncCutUI();
@@ -1546,7 +1607,7 @@ function pickColorAt(x, y){
 let imgSel = false;
 const pointers = new Map();
 function imgRect(){ const w = bgImage.width * bgScale, h = bgImage.height * bgScale; return { x: bgPanX, y: bgPanY, w, h, cx: bgPanX + w / 2, cy: bgPanY + h / 2 }; }
-function inImg(x, y){ if (!bgImage) return false; const r = imgRect(); return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h; }
+function inImg(x, y){ if (!bgImage || bgHidden) return false; const r = imgRect(); return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h; }
 function imgCorners(){ const r = imgRect(); return [[r.x, r.y], [r.x + r.w, r.y], [r.x, r.y + r.h], [r.x + r.w, r.y + r.h]]; }
 function hitImgHandle(x, y){
   if (!imgSel || !bgImage || bgLocked) return false;
@@ -1574,7 +1635,7 @@ function drawImgRing(){
   }
   ctx.restore();
 }
-function setImgSel(v){ if (imgSel === v) return; imgSel = v; render(); }
+function setImgSel(v){ if (imgSel === v) return; imgSel = v; render(); renderLayerList(); }
 
 /* ─────────── 캔버스 조작 ─────────── */
 function coords(e){
@@ -1633,18 +1694,20 @@ canvas.addEventListener('pointerdown', e => {
     const r = imgRect(); mode = 'imgResize'; start = { cx: r.cx, cy: r.cy, d: Math.hypot(x - r.cx, y - r.cy) || 1, s: bgScale };
     canvas.style.cursor = 'nwse-resize'; return;
   }
-  const l = hitTest(x, y);
+  let l = hitTest(x, y);
+  if (l && bgImage && !bgHidden && inImg(x, y) && layers.indexOf(l) < bgZ) l = null;   // 사진이 글자보다 위에 있으면 사진 선택
   if (l){
     imgSel = false;
     if (l.id !== selId) select(l.id);
     if (l.locked) return;
     if (e.shiftKey) beginResize(l, x, y);
     else { mode = 'drag'; start = { dx: x - l.x, dy: y - l.y }; canvas.style.cursor = 'grabbing'; }
-  } else if (bgImage && inImg(x, y)){
+  } else if (bgImage && !bgHidden && inImg(x, y)){
     imgSel = true;
     if (selId !== null) select(null); else render();
+    renderLayerList();
     if (!bgLocked){ mode = 'pan'; start = { dx: x - bgPanX, dy: y - bgPanY }; canvas.style.cursor = 'grabbing'; }
-  } else { imgSel = false; if (selId !== null) select(null); else render(); }
+  } else { const was = imgSel; imgSel = false; if (selId !== null) select(null); else { render(); if (was) renderLayerList(); } }
 });
 canvas.addEventListener('wheel', e => {
   if (!bgImage || bgLocked) return;
@@ -1708,7 +1771,18 @@ document.addEventListener('keydown', e => {
   if (typing) return;
   if (mod && key === 'z'){ e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if (mod && key === 'y'){ e.preventDefault(); redo(); return; }
-  const l = selLayer(); if (!l) return;
+  const l = selLayer();
+  if (!l && imgSel && bgImage){
+    if (e.key === 'Delete' || e.key === 'Backspace'){ e.preventDefault(); if (confirm('사진을 뺄까요?')) removeBg(); }
+    else if (e.key.startsWith('Arrow') && !bgLocked){
+      e.preventDefault(); const st = e.shiftKey ? 10 : 1;
+      if (e.key === 'ArrowLeft') bgPanX -= st; if (e.key === 'ArrowRight') bgPanX += st;
+      if (e.key === 'ArrowUp') bgPanY -= st; if (e.key === 'ArrowDown') bgPanY += st;
+      render(); scheduleCommit();
+    }
+    return;
+  }
+  if (!l) return;
   if (e.key === 'Delete' || e.key === 'Backspace'){ e.preventDefault(); delLayer(l.id); }
   else if (mod && key === 'd'){ e.preventDefault(); dupLayer(l.id); }
   else if (e.key.startsWith('Arrow') && !l.locked){
@@ -1835,7 +1909,7 @@ function resetCanvas(){
   layers = []; selId = null; bgImage = null; bgColor = 'transparent';
   bgOriginal = null; origData = null; cutOn = false; holeMode = false; pickMode = false; holeSeeds = []; syncCutUI();
   baseScale = bgScale = 1; bgPanX = bgPanY = 0; bgLocked = false; loopSec = 1.6;
-  draft = { ...DEFAULTS }; bgAnim = { ...IMG_ANIM_DEFAULT }; $('fileInput').value = '';
+  draft = { ...DEFAULTS }; bgAnim = { ...IMG_ANIM_DEFAULT }; bgZ = 0; bgHidden = false; imgSel = false; $('fileInput').value = '';
   addTextLayer(DEFAULTS.text); syncBgUI();
   hist = [snapshot()]; hIdx = 0; updUndo(); saveLocal();
 }
@@ -1875,15 +1949,15 @@ async function loadSet(){
   updSetUI();
 }
 function withItem(it, fn){
-  const sv = [layers, bgImage, bgColor, bgScale, bgPanX, bgPanY, bgAnim, loopSec];
+  const sv = [layers, bgImage, bgColor, bgScale, bgPanX, bgPanY, bgAnim, loopSec, bgZ, bgHidden];
   const s = it.state;
   layers = s.layers; bgImage = it._img || null; bgColor = s.bgColor || 'transparent';
   bgScale = s.bgScale; bgPanX = s.bgPanX; bgPanY = s.bgPanY;
-  bgAnim = { ...IMG_ANIM_DEFAULT, ...(s.bgAnim || {}) }; loopSec = s.loopSec || 1.6;
-  try { return fn(); } finally { [layers, bgImage, bgColor, bgScale, bgPanX, bgPanY, bgAnim, loopSec] = sv; }
+  bgAnim = { ...IMG_ANIM_DEFAULT, ...(s.bgAnim || {}) }; loopSec = s.loopSec || 1.6; bgZ = s.bgZ || 0; bgHidden = !!s.bgHidden;
+  try { return fn(); } finally { [layers, bgImage, bgColor, bgScale, bgPanX, bgPanY, bgAnim, loopSec, bgZ, bgHidden] = sv; }
 }
 function itemFromCurrent(){
-  const state = JSON.parse(JSON.stringify({ layers, bgColor, bgScale, bgPanX, bgPanY, bgAnim, loopSec }));
+  const state = JSON.parse(JSON.stringify({ layers, bgColor, bgScale, bgPanX, bgPanY, bgAnim, loopSec, bgZ, bgHidden }));
   let bgSrc = null, img = null;
   if (bgImage){
     const iw = bgImage.naturalWidth || bgImage.width, ih = bgImage.naturalHeight || bgImage.height;
@@ -1915,6 +1989,7 @@ function editItem(id){
   nextId = Math.max(1, ...layers.map(l => l.id + 1));
   selId = layers.length ? layers[layers.length - 1].id : null;
   bgColor = s.bgColor || 'transparent'; bgAnim = { ...IMG_ANIM_DEFAULT, ...(s.bgAnim || {}) }; loopSec = s.loopSec || 1.6;
+  bgZ = s.bgZ || 0; bgHidden = !!s.bgHidden; imgSel = false;
   bgImage = it._img || null; bgOriginal = bgImage; origData = null;
   cutOn = false; holeMode = false; pickMode = false; holeSeeds = [];
   if (bgImage){ baseScale = Math.max(W / bgImage.width, H / bgImage.height); bgScale = s.bgScale; bgPanX = s.bgPanX; bgPanY = s.bgPanY; }
