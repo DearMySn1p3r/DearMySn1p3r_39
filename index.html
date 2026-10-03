@@ -324,7 +324,7 @@ input[type=color]::-moz-color-swatch{border:1.5px solid #fff;border-radius:50%}
 .store-tags span{font-size:10.5px;padding:4px 11px;border-radius:99px;background:var(--tag-bg,#fafafb);color:var(--tag-fg,#62626b);font-weight:500;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04)}
 .store-buy{margin-top:18px;width:100%;padding:12px;border:none;border-radius:99px;background:var(--btn-bg,#18181b);color:var(--btn-fg,#fff);font-weight:600;font-size:13px;cursor:default;box-shadow:0 6px 16px -6px var(--btn-bg,#18181b);transition:background .2s,color .2s}
 .store-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:18px 18px 22px;border-top:1px solid var(--border)}
-.store-grid .cell{aspect-ratio:1;border-radius:18px;background:var(--cell-bg,#fafafb);transition:background .2s}
+.store-grid .cell{aspect-ratio:1;border-radius:18px;background:var(--cell-bg,transparent);transition:background .2s}
 .store-grid canvas{width:100%;height:100%;display:block}
 /* phone mock */
 .phone{position:relative;width:320px;height:668px;margin:28px auto 0;background:#fff;border-radius:46px;box-shadow:0 0 0 9px #141416,0 0 0 10px #2c2c30,0 28px 60px rgba(0,0,0,.18);overflow:hidden;display:flex;flex-direction:column;flex-shrink:0}
@@ -2004,7 +2004,7 @@ function resetCanvas(){
 
 /* ─────────── 이모티콘 세트 ─────────── */
 const STORE_DEFAULT = { heroMode:'thumb', heroItem:null, heroSrc:null, g1:'#fdeef4', g2:'#f1eeff', tags:'', buy:'구매하기',
-  btnBg:'#18181b', btnFg:'#ffffff', tagBg:'#fafafb', tagFg:'#62626b', cellBg:'#fafafb', deco:'none', decoColor:'#ffffff' };
+  btnBg:'#18181b', btnFg:'#ffffff', tagBg:'#fafafb', tagFg:'#62626b', cellBg:'#fafafb', cellOn:false, deco:'none', decoColor:'#ffffff' };
 const STORE_THEMES = [
   { name:'블랙',   btnBg:'#18181b', btnFg:'#ffffff', tagBg:'#fafafb', tagFg:'#62626b', cellBg:'#fafafb', decoColor:'#ffffff' },
   { name:'핑크',   btnBg:'#ff7aa8', btnFg:'#ffffff', tagBg:'#fff0f5', tagFg:'#e0558a', cellBg:'#fff5f8', decoColor:'#ffffff' },
@@ -2049,6 +2049,7 @@ async function loadSet(){
     const s = await IDB.get('set');
     if (s && Array.isArray(s.items)){
       setData = { name: s.name || '내 이모티콘', author: s.author || '작가 이름', items: s.items, thumb: s.thumb || null, store: { ...STORE_DEFAULT, ...(s.store || {}) } };
+      if (s.store && s.store.cellOn === undefined) setData.store.cellOn = false;
       loadHeroImg();
       await Promise.all([...setData.items, ...(setData.thumb ? [setData.thumb] : [])].map(hydrate));
     }
@@ -2245,6 +2246,7 @@ function renderSetView(){
             <label class="clr"><input type="color" data-sk="cellBg" value="${st.cellBg}">이모티콘 칸</label>
             <label class="clr"><input type="color" data-sk="decoColor" value="${st.decoColor}">장식 색</label>
           </div>
+          <div class="toggle-row" style="margin-top:10px"><span class="toggle-label">이모티콘 칸 배경 깔기</span><div class="toggle${st.cellOn ? ' on' : ''}" id="cellOnTg"></div></div>
           <div class="sp-hd">상단 장식</div>
           <div class="seg" id="decoSeg"><button data-v="none">없음</button><button data-v="sparkle">반짝</button><button data-v="heart">하트</button><button data-v="dots">물방울</button></div>
           <div class="sp-hd">태그 <small>쉼표로 구분</small></div>
@@ -2252,6 +2254,12 @@ function renderSetView(){
           <div class="sp-hd">버튼 문구</div>
           <input type="text" id="storeBuyIn" value="${esc(st.buy)}" placeholder="구매하기">
           <p class="hint">이름과 작가는 목록 탭에서 바꿔요.</p>
+          <div class="sp-hd">이미지로 저장</div>
+          <div class="row">
+            <button class="btn btn-primary grow" id="storePngBtn" onclick="exportStore('png')">PNG</button>
+            <button class="btn btn-primary grow" id="storeGifBtn" onclick="exportStore('gif')">GIF</button>
+          </div>
+          <div class="progress" id="storeProg" hidden><div></div></div>
         </div>
         <div>
           <div class="store" id="storeCard">
@@ -2330,7 +2338,7 @@ function updStoreMock(){
   $('storeTags').innerHTML = tags.map(t => `<span>${esc(t)}</span>`).join('');
   $('storeBuy').textContent = st.buy.trim() || '구매하기';
   const card = $('storeCard');
-  [['--btn-bg', st.btnBg], ['--btn-fg', st.btnFg], ['--tag-bg', st.tagBg], ['--tag-fg', st.tagFg], ['--cell-bg', st.cellBg]].forEach(([k, v]) => card.style.setProperty(k, v));
+  [['--btn-bg', st.btnBg], ['--btn-fg', st.btnFg], ['--tag-bg', st.tagBg], ['--tag-fg', st.tagFg], ['--cell-bg', st.cellOn ? st.cellBg : 'transparent']].forEach(([k, v]) => card.style.setProperty(k, v));
   $('heroDeco').innerHTML = st.deco === 'none' ? '' : DECO_SPOTS.map(([x, y, s, d]) =>
     `<svg class="deco" viewBox="0 0 24 24" style="left:${x}%;top:${y}%;width:${s}px;height:${s}px;animation-delay:${d}s;fill:${st.decoColor}">${DECO_PATH[st.deco]}</svg>`).join('');
   document.querySelectorAll('#decoSeg button').forEach(b => b.classList.toggle('active', b.dataset.v === st.deco));
@@ -2379,8 +2387,10 @@ function bindStorePanel(){
     const { name, ...t } = STORE_THEMES[+b.dataset.i]; Object.assign(st, t);
     document.querySelectorAll('[data-sk]').forEach(inp => inp.value = st[inp.dataset.sk]);
     if (st.deco === 'none') st.deco = 'sparkle';
+    st.cellOn = false; $('cellOnTg').classList.remove('on');
     save();
   }));
+  $('cellOnTg').addEventListener('click', e => { st.cellOn = !st.cellOn; e.currentTarget.classList.toggle('on', st.cellOn); save(); });
   $('decoSeg').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (!b) return; st.deco = b.dataset.v; save(); });
   $('storeBuyIn').addEventListener('input', e => { st.buy = e.target.value; save(); });
 }
@@ -2420,6 +2430,123 @@ function drawEmoCanvases(force){
       cv._static = !anim;
     });
   });
+}
+
+
+/* ─────────── 스토어 미리보기 → 이미지 ─────────── */
+const UI_FONT = "'Pretendard Variable',Pretendard,'Noto Sans KR',sans-serif";
+function rrect(c, x, y, w, h, r){ c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function cssLinear(c, x, y, w, h, deg, stops){
+  const a = deg * Math.PI / 180, sx = Math.sin(a), sy = -Math.cos(a), len = Math.abs(w * sx) + Math.abs(h * sy), cx = x + w / 2, cy = y + h / 2;
+  const g = c.createLinearGradient(cx - sx * len / 2, cy - sy * len / 2, cx + sx * len / 2, cy + sy * len / 2);
+  stops.forEach(([o, col]) => g.addColorStop(o, col)); return g;
+}
+const hexA = (hex, a) => { const [r, g, b] = hexRgb(hex); return `rgba(${r},${g},${b},${a})`; };
+function drawEmoTo(c, it, x, y, size, t){
+  if (!it) return;
+  withItem(it, () => {
+    const anim = hasAnim();
+    c.save(); c.translate(x, y); c.scale(size / W, size / H);
+    c.beginPath(); c.rect(0, 0, W, H); c.clip();
+    paintScene(c, anim ? ((t / loopSec) % 1 + 1) % 1 : null);
+    c.restore();
+  });
+}
+const DECO_D = { sparkle: 'M12 1.5c.7 6.2 3.3 8.8 9.5 9.5-6.2.7-8.8 3.3-9.5 9.5-.7-6.2-3.3-8.8-9.5-9.5 6.2-.7 8.8-3.3 9.5-9.5z', heart: 'M12 21s-7.6-4.6-9.6-9.3C.9 8.2 3.2 4.8 6.7 4.8c2 0 3.6 1.1 4.4 2.6.8-1.5 2.4-2.6 4.4-2.6 3.5 0 5.8 3.4 4.3 6.9C19.6 16.4 12 21 12 21z' };
+function storeLoop(){
+  const all = [...setData.items, ...(setData.thumb ? [setData.thumb] : [])];
+  const animated = all.filter(it => withItem(it, hasAnim));
+  if (animated.length) return Math.max(...animated.map(it => it.state.loopSec || 1.6));
+  return setData.store.deco !== 'none' ? 2.4 : 0;
+}
+function renderStoreImage(scale, t, L){
+  const st = setData.store, items = setData.items;
+  const CW = 360, PAD = 28, heroH = 188, gp = 18, gap = 10, cell = (CW - gp * 2 - gap * 2) / 3, rows = Math.ceil(items.length / 3);
+  const tags = st.tags.trim() ? st.tags.split(',').map(s => s.trim()).filter(Boolean) : autoTags();
+  const infoH = 2 + 25 + 21 + 12 + 22 + 18 + 42 + 22;
+  const gridH = rows ? gp + rows * cell + (rows - 1) * gap + 22 : 0;
+  const CH = heroH + infoH + 1 + gridH;
+  const cv = document.createElement('canvas');
+  cv.width = Math.round((CW + PAD * 2) * scale); cv.height = Math.round((CH + PAD * 2) * scale);
+  const c = cv.getContext('2d'); c.scale(scale, scale);
+  c.fillStyle = '#f5f5f6'; c.fillRect(0, 0, CW + PAD * 2, CH + PAD * 2);
+  c.translate(PAD, PAD);
+  c.save(); c.shadowColor = 'rgba(0,0,0,.08)'; c.shadowBlur = 30; c.shadowOffsetY = 10; rrect(c, 0, 0, CW, CH, 28); c.fillStyle = '#fff'; c.fill(); c.restore();
+  c.save(); rrect(c, 0, 0, CW, CH, 28); c.clip();
+  c.fillStyle = cssLinear(c, 0, 0, CW, heroH, 160, [[0, st.g1], [1, st.g2]]); c.fillRect(0, 0, CW, heroH);
+  c.fillStyle = cssLinear(c, 0, 0, CW, heroH, 180, [[.45, 'rgba(255,255,255,0)'], [.62, 'rgba(255,255,255,.25)'], [.8, 'rgba(255,255,255,.62)'], [.92, 'rgba(255,255,255,.9)'], [1, '#fff']]);
+  c.fillRect(0, 0, CW, heroH);
+  const hx = (CW - 150) / 2, hy = 30;
+  if (st.heroMode === 'upload' && heroImg){
+    const s = Math.min(150 / heroImg.width, 150 / heroImg.height), w = heroImg.width * s, h = heroImg.height * s;
+    c.imageSmoothingQuality = 'high'; c.drawImage(heroImg, hx + (150 - w) / 2, hy + (150 - h) / 2, w, h);
+  } else drawEmoTo(c, getItem(st.heroMode === 'item' && getItem(st.heroItem) ? st.heroItem : coverId()), hx, hy, 150, t);
+  if (st.deco !== 'none'){
+    const P = L || 2.4;
+    DECO_SPOTS.forEach(([px, py, s, d]) => {
+      const ph = ((t + d) / P) % 1, k = (1 - Math.cos(Math.PI * 2 * ph)) / 2, sc = (1 - 0.25 * k) * s / 24;
+      c.save(); c.globalAlpha = 0.95 - 0.5 * k; c.translate(CW * px / 100, heroH * py / 100); c.scale(sc, sc); c.translate(-12, -12);
+      c.fillStyle = st.decoColor;
+      if (st.deco === 'dots'){ c.beginPath(); c.arc(12, 12, 10, 0, Math.PI * 2); c.fill(); } else c.fill(new Path2D(DECO_D[st.deco]));
+      c.restore();
+    });
+  }
+  let y = heroH + 2;
+  c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillStyle = '#18181b'; c.font = `700 17px ${UI_FONT}`; c.fillText(setData.name || '내 이모티콘', CW / 2, y + 12.5); y += 25;
+  c.fillStyle = '#a1a1a9'; c.font = `400 12px ${UI_FONT}`; c.fillText(setData.author || '', CW / 2, y + 11); y += 21;
+  y += 12; c.font = `500 10.5px ${UI_FONT}`;
+  const tw = tags.map(s => c.measureText(s).width + 22), total = tw.reduce((a, b) => a + b, 0) + 6 * Math.max(0, tags.length - 1);
+  let x = (CW - total) / 2;
+  tags.forEach((s, i) => { rrect(c, x, y, tw[i], 22, 11); c.fillStyle = st.tagBg; c.fill(); c.fillStyle = st.tagFg; c.fillText(s, x + tw[i] / 2, y + 11.5); x += tw[i] + 6; });
+  y += 22 + 18;
+  c.save(); c.shadowColor = hexA(st.btnBg, .45); c.shadowBlur = 16; c.shadowOffsetY = 6; rrect(c, 24, y, CW - 48, 42, 21); c.fillStyle = st.btnBg; c.fill(); c.restore();
+  c.fillStyle = st.btnFg; c.font = `600 13px ${UI_FONT}`; c.fillText(st.buy.trim() || '구매하기', CW / 2, y + 21.5);
+  y += 42 + 22;
+  c.fillStyle = '#ececee'; c.fillRect(0, y, CW, 1); y += 1;
+  y += gp;
+  items.forEach((it, i) => {
+    const cx = gp + (i % 3) * (cell + gap), cy = y + Math.floor(i / 3) * (cell + gap);
+    if (st.cellOn){ rrect(c, cx, cy, cell, cell, 18); c.fillStyle = st.cellBg; c.fill(); }
+    drawEmoTo(c, it, cx, cy, cell, t);
+  });
+  c.restore();
+  return cv;
+}
+let storeExporting = false;
+async function exportStore(fmt){
+  if (storeExporting || !setData.items.length) return;
+  storeExporting = true;
+  const btn = $(fmt === 'png' ? 'storePngBtn' : 'storeGifBtn'), label = btn.textContent;
+  btn.disabled = true; btn.textContent = '만드는 중…';
+  const prog = $('storeProg'), bar = prog.firstElementChild; prog.hidden = false; bar.style.width = '0';
+  const name = (setData.name.trim() || 'emoticons').replace(/[\\/:*?"<>|]/g, '_') + '_store';
+  try {
+    await document.fonts.ready;
+    let blob;
+    if (fmt === 'png'){
+      const cv = renderStoreImage(2, 0, storeLoop());
+      blob = await new Promise(r => cv.toBlob(r, 'image/png'));
+    } else {
+      const L = storeLoop(), fps = 12, N = L ? Math.max(2, Math.round(L * fps)) : 1, frames = [];
+      let w = 0, h = 0;
+      for (let i = 0; i < N; i++){
+        const cv = renderStoreImage(1.5, L ? i / N * L : 0, L);
+        w = cv.width; h = cv.height;
+        frames.push(cv.getContext('2d').getImageData(0, 0, w, h));
+        bar.style.width = Math.round((i + 1) / N * 45) + '%';
+        await nextTick();
+      }
+      const bytes = await encodeGIF(frames, w, h, Math.round(100 / fps), [245, 245, 246], p => { bar.style.width = Math.round(45 + p * 55) + '%'; });
+      blob = new Blob([bytes], { type:'image/gif' });
+    }
+    const url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = `${name}.${fmt}`; document.body.appendChild(a); a.click(); a.remove();
+    toast(`스토어 미리보기를 ${fmt.toUpperCase()}로 저장했어요`);
+  } catch (e){ console.error(e); toast('저장 중 오류가 났어요'); }
+  storeExporting = false;
+  if ($('storeProg')) $('storeProg').hidden = true;
+  if (document.body.contains(btn)){ btn.disabled = false; btn.textContent = label; }
 }
 
 /* ZIP (무압축) */
