@@ -291,7 +291,18 @@ input[type=color]::-moz-color-swatch{border:1.5px solid #fff;border-radius:50%}
 /* store mock */
 .store-layout{display:flex;gap:28px;justify-content:center;align-items:flex-start;padding:26px 20px 0}
 .store-layout .store{margin:0 auto}
-.store-panel{width:240px;flex-shrink:0;background:#fff;border-radius:20px;box-shadow:0 0 0 1px var(--border);padding:16px;position:sticky;top:0}
+.store-panel{width:250px;flex-shrink:0;background:#fff;border-radius:20px;box-shadow:0 0 0 1px var(--border);padding:16px}
+.theme-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+.theme-chip{width:24px;height:24px;border-radius:50%;border:none;padding:0;cursor:pointer;background:linear-gradient(135deg,var(--a) 50%,var(--b) 50%);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);transition:transform .15s var(--ease)}
+.theme-chip:hover{transform:scale(1.1)}
+.theme-chip.on{box-shadow:inset 0 0 0 1px rgba(0,0,0,.08),0 0 0 2px #fff,0 0 0 3.5px var(--text)}
+.clr-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.clr{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text2);background:#fafafb;border-radius:8px;padding:5px 7px;cursor:pointer;white-space:nowrap}
+.clr:hover{background:var(--surface3)}
+.hero-wrap{position:relative}
+.hero-deco{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.hero-deco .deco{position:absolute;transform:translate(-50%,-50%);filter:drop-shadow(0 1px 2px rgba(0,0,0,.08));animation:twinkle 2.4s ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:.95;transform:translate(-50%,-50%) scale(1)}50%{opacity:.45;transform:translate(-50%,-50%) scale(.75)}}
 .sp-hd{font-size:11.5px;font-weight:600;color:var(--text);margin:16px 0 8px}
 .sp-hd:first-child{margin-top:0}
 .sp-hd small{font-weight:400;color:var(--text3);margin-left:4px}
@@ -310,10 +321,10 @@ input[type=color]::-moz-color-swatch{border:1.5px solid #fff;border-radius:50%}
 .store-title{font-size:17px;font-weight:700;letter-spacing:-.02em}
 .store-author{font-size:12px;color:var(--text3);margin-top:3px}
 .store-tags{display:flex;gap:6px;justify-content:center;margin-top:12px}
-.store-tags span{font-size:10.5px;padding:3px 10px;border-radius:99px;background:var(--surface2);box-shadow:inset 0 0 0 1px var(--border);color:var(--text2)}
-.store-buy{margin-top:18px;width:100%;padding:12px;border:none;border-radius:99px;background:var(--text);color:#fff;font-weight:600;font-size:13px;cursor:default}
+.store-tags span{font-size:10.5px;padding:4px 11px;border-radius:99px;background:var(--tag-bg,#fafafb);color:var(--tag-fg,#62626b);font-weight:500;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04)}
+.store-buy{margin-top:18px;width:100%;padding:12px;border:none;border-radius:99px;background:var(--btn-bg,#18181b);color:var(--btn-fg,#fff);font-weight:600;font-size:13px;cursor:default;box-shadow:0 6px 16px -6px var(--btn-bg,#18181b);transition:background .2s,color .2s}
 .store-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:18px 18px 22px;border-top:1px solid var(--border)}
-.store-grid .cell{aspect-ratio:1;border-radius:16px;background:#fafafb}
+.store-grid .cell{aspect-ratio:1;border-radius:18px;background:var(--cell-bg,#fafafb);transition:background .2s}
 .store-grid canvas{width:100%;height:100%;display:block}
 /* phone mock */
 .phone{position:relative;width:320px;height:668px;margin:28px auto 0;background:#fff;border-radius:46px;box-shadow:0 0 0 9px #141416,0 0 0 10px #2c2c30,0 28px 60px rgba(0,0,0,.18);overflow:hidden;display:flex;flex-direction:column;flex-shrink:0}
@@ -1992,7 +2003,23 @@ function resetCanvas(){
 
 
 /* ─────────── 이모티콘 세트 ─────────── */
-const STORE_DEFAULT = { heroMode:'thumb', heroItem:null, heroSrc:null, g1:'#fdeef4', g2:'#f1eeff', tags:'', buy:'구매하기' };
+const STORE_DEFAULT = { heroMode:'thumb', heroItem:null, heroSrc:null, g1:'#fdeef4', g2:'#f1eeff', tags:'', buy:'구매하기',
+  btnBg:'#18181b', btnFg:'#ffffff', tagBg:'#fafafb', tagFg:'#62626b', cellBg:'#fafafb', deco:'none', decoColor:'#ffffff' };
+const STORE_THEMES = [
+  { name:'블랙',   btnBg:'#18181b', btnFg:'#ffffff', tagBg:'#fafafb', tagFg:'#62626b', cellBg:'#fafafb', decoColor:'#ffffff' },
+  { name:'핑크',   btnBg:'#ff7aa8', btnFg:'#ffffff', tagBg:'#fff0f5', tagFg:'#e0558a', cellBg:'#fff5f8', decoColor:'#ffffff' },
+  { name:'라벤더', btnBg:'#9b87f5', btnFg:'#ffffff', tagBg:'#f3f0ff', tagFg:'#7c66e0', cellBg:'#f7f5ff', decoColor:'#ffffff' },
+  { name:'민트',   btnBg:'#3cc6a3', btnFg:'#ffffff', tagBg:'#e9faf4', tagFg:'#27a184', cellBg:'#f1fbf7', decoColor:'#ffffff' },
+  { name:'피치',   btnBg:'#ff9a76', btnFg:'#ffffff', tagBg:'#fff3ec', tagFg:'#e9774f', cellBg:'#fff7f2', decoColor:'#ffffff' },
+  { name:'하늘',   btnBg:'#5aa9f5', btnFg:'#ffffff', tagBg:'#eef6ff', tagFg:'#3d8be0', cellBg:'#f3f8ff', decoColor:'#ffffff' },
+  { name:'크림',   btnBg:'#fff1c7', btnFg:'#8a6a2f', tagBg:'#fffaeb', tagFg:'#a5823f', cellBg:'#fffbf0', decoColor:'#ffffff' },
+];
+const DECO_PATH = {
+  sparkle: '<path d="M12 1.5c.7 6.2 3.3 8.8 9.5 9.5-6.2.7-8.8 3.3-9.5 9.5-.7-6.2-3.3-8.8-9.5-9.5 6.2-.7 8.8-3.3 9.5-9.5z"/>',
+  heart: '<path d="M12 21s-7.6-4.6-9.6-9.3C.9 8.2 3.2 4.8 6.7 4.8c2 0 3.6 1.1 4.4 2.6.8-1.5 2.4-2.6 4.4-2.6 3.5 0 5.8 3.4 4.3 6.9C19.6 16.4 12 21 12 21z"/>',
+  dots: '<circle cx="12" cy="12" r="10"/>',
+};
+const DECO_SPOTS = [[9,20,18,0],[86,26,14,.6],[16,66,11,1.2],[80,70,16,.3],[30,10,9,.9],[66,12,10,1.5],[50,80,8,.45]];
 const HERO_GRADS = [['#fdeef4','#f1eeff'], ['#fff4d6','#ffe3ec'], ['#e3f4ff','#ece6ff'], ['#e6f7ec','#fff6d8'], ['#ffe9e1','#fff6ee'], ['#f2f2f4','#ffffff']];
 let setData = { name:'내 이모티콘', author:'작가 이름', items:[], thumb:null, store:{ ...STORE_DEFAULT } };
 let heroImg = null;
@@ -2208,6 +2235,18 @@ function renderSetView(){
             <div class="grow"></div>
             ${HERO_GRADS.map(([a, b]) => `<button class="grad-dot" data-g="${a},${b}" style="background:linear-gradient(135deg,${a},${b})"></button>`).join('')}
           </div>
+          <div class="sp-hd">포인트 테마</div>
+          <div class="theme-row">${STORE_THEMES.map((t, i) => `<button class="theme-chip" data-i="${i}" title="${t.name}" style="--a:${t.btnBg};--b:${t.tagBg}"></button>`).join('')}</div>
+          <div class="clr-grid">
+            <label class="clr"><input type="color" data-sk="btnBg" value="${st.btnBg}">버튼</label>
+            <label class="clr"><input type="color" data-sk="btnFg" value="${st.btnFg}">버튼 글자</label>
+            <label class="clr"><input type="color" data-sk="tagBg" value="${st.tagBg}">태그</label>
+            <label class="clr"><input type="color" data-sk="tagFg" value="${st.tagFg}">태그 글자</label>
+            <label class="clr"><input type="color" data-sk="cellBg" value="${st.cellBg}">이모티콘 칸</label>
+            <label class="clr"><input type="color" data-sk="decoColor" value="${st.decoColor}">장식 색</label>
+          </div>
+          <div class="sp-hd">상단 장식</div>
+          <div class="seg" id="decoSeg"><button data-v="none">없음</button><button data-v="sparkle">반짝</button><button data-v="heart">하트</button><button data-v="dots">물방울</button></div>
           <div class="sp-hd">태그 <small>쉼표로 구분</small></div>
           <input type="text" id="storeTagsIn" value="${esc(st.tags)}" placeholder="${esc(autoTags().join(', '))}">
           <div class="sp-hd">버튼 문구</div>
@@ -2215,8 +2254,8 @@ function renderSetView(){
           <p class="hint">이름과 작가는 목록 탭에서 바꿔요.</p>
         </div>
         <div>
-          <div class="store">
-            <div class="store-hero" id="storeHero"></div>
+          <div class="store" id="storeCard">
+            <div class="hero-wrap"><div class="store-hero" id="storeHero"></div><div class="hero-deco" id="heroDeco"></div></div>
             <div class="store-info">
               <div class="store-title">${esc(setData.name || '내 이모티콘')}</div>
               <div class="store-author">${esc(setData.author || '')}</div>
@@ -2290,6 +2329,12 @@ function updStoreMock(){
   const tags = st.tags.trim() ? st.tags.split(',').map(t => t.trim()).filter(Boolean) : autoTags();
   $('storeTags').innerHTML = tags.map(t => `<span>${esc(t)}</span>`).join('');
   $('storeBuy').textContent = st.buy.trim() || '구매하기';
+  const card = $('storeCard');
+  [['--btn-bg', st.btnBg], ['--btn-fg', st.btnFg], ['--tag-bg', st.tagBg], ['--tag-fg', st.tagFg], ['--cell-bg', st.cellBg]].forEach(([k, v]) => card.style.setProperty(k, v));
+  $('heroDeco').innerHTML = st.deco === 'none' ? '' : DECO_SPOTS.map(([x, y, s, d]) =>
+    `<svg class="deco" viewBox="0 0 24 24" style="left:${x}%;top:${y}%;width:${s}px;height:${s}px;animation-delay:${d}s;fill:${st.decoColor}">${DECO_PATH[st.deco]}</svg>`).join('');
+  document.querySelectorAll('#decoSeg button').forEach(b => b.classList.toggle('active', b.dataset.v === st.deco));
+  document.querySelectorAll('.theme-chip').forEach(b => { const t = STORE_THEMES[+b.dataset.i]; b.classList.toggle('on', t.btnBg === st.btnBg && t.tagBg === st.tagBg && t.cellBg === st.cellBg); });
   document.querySelectorAll('#heroMode button').forEach(b => b.classList.toggle('active', b.dataset.v === st.heroMode));
   $('heroPick').style.display = st.heroMode === 'item' ? '' : 'none';
   $('heroUp').style.display = st.heroMode === 'upload' ? '' : 'none';
@@ -2329,6 +2374,14 @@ function bindStorePanel(){
     [st.g1, st.g2] = b.dataset.g.split(','); $('heroG1').value = st.g1; $('heroG2').value = st.g2; save();
   }));
   $('storeTagsIn').addEventListener('input', e => { st.tags = e.target.value; save(); });
+  document.querySelectorAll('[data-sk]').forEach(inp => inp.addEventListener('input', () => { st[inp.dataset.sk] = inp.value; save(); }));
+  document.querySelectorAll('.theme-chip').forEach(b => b.addEventListener('click', () => {
+    const { name, ...t } = STORE_THEMES[+b.dataset.i]; Object.assign(st, t);
+    document.querySelectorAll('[data-sk]').forEach(inp => inp.value = st[inp.dataset.sk]);
+    if (st.deco === 'none') st.deco = 'sparkle';
+    save();
+  }));
+  $('decoSeg').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (!b) return; st.deco = b.dataset.v; save(); });
   $('storeBuyIn').addEventListener('input', e => { st.buy = e.target.value; save(); });
 }
 function renderChat(){
