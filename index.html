@@ -240,60 +240,124 @@ input[type=color]::-moz-color-swatch{border:1.5px solid #fff;border-radius:50%}
 .ooc-body.empty{color:var(--text3);text-align:center}
 
 /* Emoticon set */
-.set-card{width:min(980px,100%);height:min(780px,calc(100dvh - 32px))}
-.set-top{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
-.set-top .seg{width:320px;max-width:100%}
-.set-bd{flex:1;overflow:auto;padding:18px;background:var(--surface2)}
-.set-meta{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
-.set-meta input{max-width:240px;background:#fff}
-.set-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px}
-.emo-tile{position:relative;aspect-ratio:1;background:#fff;border-radius:12px;box-shadow:inset 0 0 0 1px var(--border);overflow:hidden;cursor:pointer;transition:box-shadow .15s}
-.emo-tile:hover{box-shadow:inset 0 0 0 1px var(--border2),var(--shadow)}
-.emo-tile.editing{box-shadow:inset 0 0 0 2px var(--text)}
-.emo-tile canvas{width:100%;height:100%;display:block}
-.emo-no{position:absolute;left:8px;top:6px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text3)}
-.emo-tile.editing .emo-no{color:var(--text)}
-.emo-acts{position:absolute;left:6px;right:6px;bottom:6px;display:flex;gap:1px;opacity:0;transition:opacity .15s;background:rgba(255,255,255,.95);border-radius:8px;padding:2px;box-shadow:0 1px 4px rgba(0,0,0,.12)}
-.emo-tile:hover .emo-acts{opacity:1}
-@media (hover:none){.emo-acts{opacity:1}}
-.emo-acts button{flex:1;height:22px;border:none;background:none;border-radius:6px;font-size:10.5px;cursor:pointer;color:var(--text2);padding:0}
+.set-card{width:min(900px,100%);height:min(820px,calc(100dvh - 32px))}
+.set-top{display:flex;align-items:center;gap:12px;padding:12px 14px 12px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.set-title{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:650;letter-spacing:-.02em}
+.set-title .count-pill{margin:0}
+.set-top .seg{flex:0 1 330px;margin-left:auto}
+.set-bd{flex:1;overflow:auto;background:#fafafb;display:flex;flex-direction:column}
+.set-wrap{width:100%;max-width:720px;margin:0 auto;padding:22px 20px 26px;flex:1}
+.set-name{display:flex;gap:12px;align-items:flex-end;margin-bottom:20px}
+.set-name input{border:none;background:transparent;padding:2px 0;border-radius:0;border-bottom:1px solid transparent}
+.set-name input:hover{border-bottom-color:var(--border2)}
+.set-name input:focus{box-shadow:none;background:transparent;border-bottom-color:var(--text)}
+.set-name #setName{font-size:20px;font-weight:700;letter-spacing:-.03em;flex:1;min-width:0}
+.set-name #setAuthor{font-size:12px;color:var(--text2);width:150px;text-align:right}
+.set-sec{margin-bottom:22px}
+.set-sec-hd{display:flex;align-items:baseline;gap:8px;font-size:12px;font-weight:600;color:var(--text);margin-bottom:10px}
+.set-sec-hd small{font-size:11px;font-weight:400;color:var(--text3)}
+.thumb-row{display:flex;gap:16px;align-items:center;background:#fff;border-radius:20px;padding:12px;box-shadow:0 0 0 1px var(--border)}
+.thumb-slot{position:relative;width:96px;height:96px;flex-shrink:0;border-radius:16px;background:#fafafb;box-shadow:inset 0 0 0 1px var(--border);overflow:hidden;cursor:pointer;display:grid;place-items:center;color:var(--text3);font-size:11px;line-height:1.5;text-align:center;transition:box-shadow .15s}
+.thumb-slot:hover{box-shadow:inset 0 0 0 1px var(--border2)}
+.thumb-slot.empty{border:1.5px dashed var(--border2);box-shadow:none;background:transparent}
+.thumb-slot.editing{box-shadow:inset 0 0 0 2px var(--text)}
+.thumb-slot canvas{width:100%;height:100%;display:block}
+.thumb-info{flex:1;min-width:0}
+.thumb-info b{font-size:13px;font-weight:600}
+.thumb-info p{font-size:11.5px;color:var(--text3);margin:2px 0 10px;line-height:1.5}
+.thumb-info .row{flex-wrap:wrap}
+.thumb-info .btn{padding:5px 10px;font-size:11.5px}
+.set-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:10px}
+.emo-tile{position:relative;aspect-ratio:1;background:#fff;border-radius:20px;box-shadow:0 0 0 1px var(--border);cursor:pointer;transition:transform .2s var(--ease),box-shadow .2s}
+.emo-tile:hover{transform:translateY(-2px);box-shadow:0 0 0 1px var(--border2),0 10px 24px rgba(0,0,0,.06)}
+.emo-tile.editing{box-shadow:0 0 0 2px var(--text)}
+.emo-tile canvas{width:100%;height:100%;display:block;border-radius:20px}
+.emo-no{position:absolute;left:8px;top:8px;min-width:22px;height:18px;padding:0 6px;border-radius:9px;background:var(--surface3);font-family:'DM Mono',monospace;font-size:10px;line-height:18px;text-align:center;color:var(--text2)}
+.emo-tile.editing .emo-no{background:var(--text);color:#fff}
+.emo-acts{position:absolute;left:50%;bottom:8px;transform:translate(-50%,4px);display:flex;gap:0;opacity:0;transition:opacity .18s,transform .18s var(--ease);background:#fff;border-radius:99px;padding:2px;box-shadow:0 2px 10px rgba(0,0,0,.12),0 0 0 1px rgba(0,0,0,.03)}
+.emo-tile:hover .emo-acts{opacity:1;transform:translate(-50%,0)}
+@media (hover:none){.emo-acts{opacity:1;transform:translate(-50%,0)}}
+.emo-acts button{width:22px;height:22px;border:none;background:none;border-radius:50%;cursor:pointer;color:var(--text2);display:grid;place-items:center;padding:0}
 .emo-acts button:hover{background:var(--surface3);color:var(--text)}
-.emo-add{aspect-ratio:1;border:1px dashed var(--border2);border-radius:12px;background:transparent;color:var(--text3);font-size:11.5px;cursor:pointer;transition:.15s;line-height:1.5}
+.emo-acts button.danger:hover{color:#d4393b;background:#fdecec}
+.emo-add{aspect-ratio:1;border:1.5px dashed var(--border2);border-radius:20px;background:transparent;color:var(--text3);font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:.15s;line-height:1.4}
 .emo-add:hover{border-color:var(--text2);color:var(--text);background:#fff}
-.set-foot{display:flex;align-items:center;gap:8px;margin-top:18px;flex-wrap:wrap}
-.set-empty{padding:40px 12px;text-align:center;color:var(--text3);font-size:12.5px;line-height:1.8}
-.mock-note{text-align:center;font-size:11px;color:var(--text3);margin-top:14px}
+.emo-add span{font-size:22px;line-height:1;font-weight:300}
+.set-foot{position:sticky;bottom:0;display:flex;align-items:center;gap:8px;padding:12px 20px;border-top:1px solid var(--border);background:rgba(255,255,255,.94);backdrop-filter:blur(8px);flex-wrap:wrap}
+.set-foot .progress{flex-basis:100%;margin:4px 0 0}
+.set-empty{padding:26px 12px;text-align:center;color:var(--text3);font-size:12px;line-height:1.8;background:#fff;border-radius:20px;box-shadow:0 0 0 1px var(--border);margin-bottom:10px}
+.mock-note{text-align:center;font-size:11px;color:var(--text3);margin:16px 0 20px}
+.mock-note button{border:none;background:none;color:var(--text2);text-decoration:underline;text-underline-offset:2px;cursor:pointer;font-size:11px;padding:0}
 /* store mock */
-.store{max-width:400px;margin:0 auto;background:#fff;border-radius:20px;overflow:hidden;box-shadow:var(--shadow)}
-.store-hero{background:linear-gradient(180deg,#f3f0fb 0%,#fff 100%);display:grid;place-items:center;padding:30px 0 6px}
-.store-hero canvas{width:170px;height:170px}
-.store-info{padding:6px 24px 22px;text-align:center}
-.store-title{font-size:18px;font-weight:700;letter-spacing:-.02em}
+.store-layout{display:flex;gap:28px;justify-content:center;align-items:flex-start;padding:26px 20px 0}
+.store-layout .store{margin:0 auto}
+.store-panel{width:240px;flex-shrink:0;background:#fff;border-radius:20px;box-shadow:0 0 0 1px var(--border);padding:16px;position:sticky;top:0}
+.sp-hd{font-size:11.5px;font-weight:600;color:var(--text);margin:16px 0 8px}
+.sp-hd:first-child{margin-top:0}
+.sp-hd small{font-weight:400;color:var(--text3);margin-left:4px}
+.store-panel .seg{margin-bottom:8px}
+.pick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;max-height:132px;overflow-y:auto}
+.pick-grid button{aspect-ratio:1;border:none;background:#fafafb;border-radius:10px;cursor:pointer;padding:2px;box-shadow:inset 0 0 0 1px var(--border)}
+.pick-grid button.on{box-shadow:inset 0 0 0 2px var(--text)}
+.pick-grid canvas{width:100%;height:100%;display:block;pointer-events:none}
+.grad-dot{width:18px;height:18px;border-radius:50%;border:none;padding:0;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.grad-dot.on{box-shadow:inset 0 0 0 1px rgba(0,0,0,.08),0 0 0 2px #fff,0 0 0 3px var(--text)}
+.store-hero img{width:150px;height:150px;object-fit:contain;display:block}
+.store{width:360px;max-width:100%;margin:26px auto 0;background:#fff;border-radius:28px;overflow:hidden;box-shadow:0 0 0 1px var(--border),0 20px 50px rgba(0,0,0,.06)}
+.store-hero{background:#fff;display:grid;place-items:center;padding:30px 0 8px}
+.store-hero canvas{width:150px;height:150px}
+.store-info{padding:2px 24px 22px;text-align:center}
+.store-title{font-size:17px;font-weight:700;letter-spacing:-.02em}
 .store-author{font-size:12px;color:var(--text3);margin-top:3px}
 .store-tags{display:flex;gap:6px;justify-content:center;margin-top:12px}
-.store-tags span{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface3);color:var(--text2)}
-.store-buy{margin-top:18px;width:100%;padding:12px;border:none;border-radius:12px;background:var(--text);color:#fff;font-weight:600;font-size:13px;cursor:default}
-.store-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:18px 16px 22px;border-top:1px solid var(--border)}
-.store-grid canvas{width:100%;aspect-ratio:1;display:block}
-/* chat mock */
-.phone{width:340px;max-width:100%;height:660px;margin:0 auto;background:#fff;border-radius:36px;box-shadow:0 0 0 8px #18181b,var(--shadow-lg);overflow:hidden;display:flex;flex-direction:column}
-.phone-top{height:50px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;border-bottom:1px solid var(--border)}
-.chat{flex:1;overflow-y:auto;padding:14px 12px;background:#e3e8ee;display:flex;flex-direction:column;gap:8px}
-.msg{max-width:72%;font-size:12.5px;line-height:1.45;padding:8px 11px;border-radius:14px;word-break:break-word}
-.msg.them{align-self:flex-start;background:#fff;border-top-left-radius:4px}
-.msg.me{align-self:flex-end;background:#18181b;color:#fff;border-top-right-radius:4px}
-.msg-emo{width:118px;height:118px;flex-shrink:0;align-self:flex-end;animation:rise .25s var(--ease)}
-.msg-emo.them{align-self:flex-start}
-.chat-input{display:flex;align-items:center;gap:8px;padding:8px 10px;border-top:1px solid var(--border);font-size:12px;color:var(--text3);flex-shrink:0}
-.chat-input .fake{flex:1;background:var(--surface2);border-radius:99px;padding:7px 12px}
-.tray{height:190px;flex-shrink:0;overflow-y:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:8px;background:var(--surface2);border-top:1px solid var(--border);align-content:start}
-.tray button{aspect-ratio:1;border:none;background:none;border-radius:10px;cursor:pointer;padding:4px;transition:background .15s}
-.tray button:hover{background:#fff}
+.store-tags span{font-size:10.5px;padding:3px 10px;border-radius:99px;background:var(--surface2);box-shadow:inset 0 0 0 1px var(--border);color:var(--text2)}
+.store-buy{margin-top:18px;width:100%;padding:12px;border:none;border-radius:99px;background:var(--text);color:#fff;font-weight:600;font-size:13px;cursor:default}
+.store-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:18px 18px 22px;border-top:1px solid var(--border)}
+.store-grid .cell{aspect-ratio:1;border-radius:16px;background:#fafafb}
+.store-grid canvas{width:100%;height:100%;display:block}
+/* phone mock */
+.phone{position:relative;width:320px;height:668px;margin:28px auto 0;background:#fff;border-radius:46px;box-shadow:0 0 0 9px #141416,0 0 0 10px #2c2c30,0 28px 60px rgba(0,0,0,.18);overflow:hidden;display:flex;flex-direction:column;flex-shrink:0}
+.island{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:92px;height:27px;border-radius:20px;background:#0c0c0e;z-index:3}
+.status{height:46px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:4px 26px 0 32px;font-size:13px;font-weight:600;letter-spacing:-.01em}
+.status .ic{display:flex;gap:5px;align-items:center}
+.chat-head{height:50px;flex-shrink:0;display:flex;align-items:center;gap:10px;padding:0 14px 0 10px;border-bottom:1px solid #f1f1f3}
+.chat-head .back{color:var(--text);display:grid;place-items:center}
+.avatar{width:32px;height:32px;border-radius:12px;background:linear-gradient(135deg,#ffe0ea,#e8e0ff);overflow:hidden;flex-shrink:0}
+.avatar canvas{width:100%;height:100%;display:block}
+.chat-name{font-size:13.5px;font-weight:600;line-height:1.2}
+.chat-sub{font-size:10.5px;color:var(--text3)}
+.chat{flex:1;overflow-y:auto;padding:10px 14px 14px;background:#f3f4f7;display:flex;flex-direction:column;gap:4px}
+.chat::-webkit-scrollbar{width:0}
+.day{align-self:center;font-size:10px;color:var(--text3);background:rgba(255,255,255,.85);padding:3px 10px;border-radius:99px;margin:4px 0 8px}
+.chat-hint{margin:auto;font-size:11.5px;color:var(--text3);text-align:center;line-height:1.6}
+.sent{align-self:flex-end;display:flex;align-items:flex-end;gap:5px;animation:popin .32s var(--ease)}
+.sent .meta{font-size:9.5px;color:var(--text3);text-align:right;line-height:1.35;padding-bottom:6px}
+.sent .meta i{font-style:normal;color:#e0a100;display:block}
+.sent canvas{width:112px;height:112px;display:block}
+@keyframes popin{from{opacity:0;transform:scale(.85) translateY(8px)}}
+.composer{display:flex;align-items:center;gap:8px;padding:8px 10px;flex-shrink:0;background:#fff}
+.composer .cbtn{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:var(--text3);flex-shrink:0}
+.composer .cbtn.on{color:var(--text)}
+.composer .field{flex:1;height:32px;border-radius:99px;background:#f3f4f7;padding:0 12px;display:flex;align-items:center;font-size:12px;color:var(--text3)}
+.tray-tabs{display:flex;gap:4px;padding:6px 10px;border-top:1px solid #f1f1f3;background:#fff;flex-shrink:0}
+.tray-tab{width:34px;height:30px;border-radius:9px;display:grid;place-items:center;color:var(--text3)}
+.tray-tab.on{background:#f3f4f7}
+.tray-tab canvas{width:24px;height:24px;display:block}
+.tray{height:184px;flex-shrink:0;overflow-y:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:4px 8px 8px;background:#fff;align-content:start}
+.tray::-webkit-scrollbar{width:0}
+.tray button{aspect-ratio:1;border:none;background:none;border-radius:12px;cursor:pointer;padding:5px;transition:background .15s,transform .1s}
+.tray button:hover{background:#f3f4f7}
+.tray button:active{transform:scale(.92)}
 .tray canvas{width:100%;height:100%;display:block;pointer-events:none}
+.home-bar{height:22px;flex-shrink:0;background:#fff;display:grid;place-items:center}
+.home-bar::after{content:'';width:108px;height:4px;border-radius:2px;background:#141416}
 @media (max-width:860px){
   .set-card{height:calc(100dvh - 32px)}
+  .set-top .seg{flex-basis:100%;margin-left:0;order:3}
   .set-grid{grid-template-columns:repeat(3,1fr)}
-  .phone{height:600px;box-shadow:0 0 0 6px #18181b}
+  .store-layout{flex-direction:column;align-items:stretch;padding-top:16px}
+  .store-panel{width:auto;position:static}
+  .phone{transform:scale(.92);transform-origin:top center;margin-bottom:-50px}
 }
 
 /* Toast */
@@ -368,7 +432,10 @@ input[type=color]::-moz-color-swatch{border:1.5px solid #fff;border-radius:50%}
       <button class="btn btn-primary grow" id="saveSetBtn" onclick="saveToSet(false)">세트에 담기</button>
       <button class="btn btn-ghost grow" onclick="openSet()">세트 보기</button>
     </div>
-    <button class="btn btn-ghost btn-full mt8" onclick="newEmoticon()">새 이모티콘 시작</button>
+    <div class="row mt8">
+      <button class="btn btn-ghost grow" onclick="newEmoticon()">새 이모티콘</button>
+      <button class="btn btn-ghost grow" onclick="saveThumb()">대표로 저장</button>
+    </div>
   </div>
 
   <div class="card">
@@ -659,8 +726,7 @@ input[type=color]::-moz-color-swatch{border:1.5px solid #fff;border-radius:50%}
 <div class="modal" id="setModal" hidden onclick="if(event.target===this)closeModal('setModal')">
   <div class="modal-card set-card">
     <div class="set-top">
-      <div><div class="modal-title">이모티콘 세트</div><div class="modal-sub" id="setCount">0개</div></div>
-      <div class="grow"></div>
+      <div class="set-title">이모티콘 세트 <span class="count-pill" id="setCount">0개</span></div>
       <div class="seg" id="setTabs"><button data-v="list" class="active">목록</button><button data-v="store">스토어 미리보기</button><button data-v="chat">채팅 미리보기</button></div>
       <button class="icon-btn" onclick="closeModal('setModal')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
@@ -1411,7 +1477,8 @@ function switchTab(name){
 /* ─────────── 히스토리 & 자동 저장 ─────────── */
 const SAVE_KEY = 'stampmaker.v2';
 let hist = [], hIdx = -1, commitTimer = null;
-const snapshot = () => JSON.stringify({ layers, selId, nextId, bgColor, bgScale, bgPanX, bgPanY, loopSec, bgAnim, bgZ, bgHidden });
+const cutState = () => bgOriginal ? { on: cutOn, seeds: holeSeeds, color: $('cutColor').value, tol: +$('cutTol').value, soft: $('cutSoft').classList.contains('on') } : null;
+const snapshot = () => JSON.stringify({ layers, selId, nextId, bgColor, bgScale, bgPanX, bgPanY, loopSec, bgAnim, bgZ, bgHidden, cut: cutState() });
 function commit(){
   clearTimeout(commitTimer);
   const s = snapshot();
@@ -1431,6 +1498,15 @@ function applySnap(s){
   if (bgImage && o.bgScale){ bgScale = o.bgScale; bgPanX = o.bgPanX; bgPanY = o.bgPanY; }
   loopSec = o.loopSec || 1.6;
   bgAnim = { ...IMG_ANIM_DEFAULT, ...(o.bgAnim || {}) }; bgZ = o.bgZ || 0; bgHidden = !!o.bgHidden;
+  // 배경 지우기(클릭 지우기 포함) 되돌리기
+  if (bgOriginal && o.cut && JSON.stringify(o.cut) !== JSON.stringify(cutState())){
+    cutOn = o.cut.on; holeSeeds = (o.cut.seeds || []).map(s => ({ ...s }));
+    $('cutColor').value = o.cut.color; $('cutTol').value = o.cut.tol; $('cutTolV').textContent = o.cut.tol;
+    $('cutSoft').classList.toggle('on', o.cut.soft);
+    clearTimeout(cutTimer);
+    if (cutOn) runCut(); else bgImage = bgOriginal;
+    syncCutUI();
+  }
   const l = selLayer(); if (l) STYLE_KEYS.forEach(k => draft[k] = l[k]);
   syncBgUI(); syncUI(); renderLayerList(); render();
 }
@@ -1518,10 +1594,10 @@ function toggleCut(){
   cutOn = !cutOn; pickMode = false; holeMode = false;
   if (cutOn){
     $('cutColor').value = detectBgColor();
-    if (bgColor !== 'transparent'){ bgColor = 'transparent'; syncBgUI(); commit(); }
+    if (bgColor !== 'transparent'){ bgColor = 'transparent'; syncBgUI(); }
     runCut();
   } else { bgImage = bgOriginal; render(); renderLayerList(); }
-  syncCutUI();
+  syncCutUI(); commit();
 }
 function scheduleCut(){ if (!cutOn) return; clearTimeout(cutTimer); cutTimer = setTimeout(runCut, 80); }
 function runCut(){
@@ -1574,7 +1650,7 @@ function toggleHole(){
   canvas.style.cursor = holeMode ? 'crosshair' : 'default';
   if (holeMode) toast('지울 빈 곳을 캔버스에서 눌러 주세요');
 }
-function clearHoles(){ holeSeeds = []; syncCutUI(); runCut(); }
+function clearHoles(){ holeSeeds = []; syncCutUI(); runCut(); commit(); }
 function imgPoint(x, y){
   const { w, h } = getOrigData();
   const ix = Math.floor((x - bgPanX) / bgScale), iy = Math.floor((y - bgPanY) / bgScale);
@@ -1585,7 +1661,7 @@ function addHole(x, y){
   const { w, data } = getOrigData(), i = (pt.y * w + pt.x) * 4, [br, bg, bb] = hexRgb($('cutColor').value);
   const T = +$('cutTol').value, S = $('cutSoft').classList.contains('on') ? Math.max(10, T * 0.7) : 0;
   if (Math.hypot(data[i] - br, data[i + 1] - bg, data[i + 2] - bb) > T + S) return toast('그 부분은 지울 색과 달라요');
-  holeSeeds.push(pt); syncCutUI(); runCut();
+  holeSeeds.push(pt); syncCutUI(); runCut(); commit();
 }
 function startPick(){
   pickMode = !pickMode; holeMode = false; syncCutUI();
@@ -1599,7 +1675,7 @@ function pickColorAt(x, y){
   if (ix < 0 || iy < 0 || ix >= w || iy >= h){ syncCutUI(); return toast('이미지 바깥이에요'); }
   const i = (iy * w + ix) * 4;
   $('cutColor').value = toHex(data[i], data[i + 1], data[i + 2]);
-  syncCutUI(); runCut();
+  syncCutUI(); runCut(); commit();
 }
 
 
@@ -1916,7 +1992,10 @@ function resetCanvas(){
 
 
 /* ─────────── 이모티콘 세트 ─────────── */
-let setData = { name:'내 이모티콘', author:'작가 이름', items:[] };
+const STORE_DEFAULT = { heroMode:'thumb', heroItem:null, heroSrc:null, g1:'#fdeef4', g2:'#f1eeff', tags:'', buy:'구매하기' };
+const HERO_GRADS = [['#fdeef4','#f1eeff'], ['#fff4d6','#ffe3ec'], ['#e3f4ff','#ece6ff'], ['#e6f7ec','#fff6d8'], ['#ffe9e1','#fff6ee'], ['#f2f2f4','#ffffff']];
+let setData = { name:'내 이모티콘', author:'작가 이름', items:[], thumb:null, store:{ ...STORE_DEFAULT } };
+let heroImg = null;
 let currentItemId = null, dirty = false, setView = 'list', setSaveTimer = null, chatMsgs = null, setExporting = false;
 const IDB = {
   open(){ return new Promise((res, rej) => { const r = indexedDB.open('stampmaker', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); },
@@ -1927,7 +2006,7 @@ const newItemId = () => 'e' + Date.now().toString(36) + Math.random().toString(3
 function persistSet(){
   clearTimeout(setSaveTimer);
   setSaveTimer = setTimeout(() => {
-    IDB.set('set', { name: setData.name, author: setData.author, items: setData.items.map(({ _img, ...r }) => r) })
+    IDB.set('set', { name: setData.name, author: setData.author, items: setData.items.map(({ _img, ...r }) => r), thumb: setData.thumb ? (({ _img, ...r }) => r)(setData.thumb) : null, store: setData.store })
       .catch(() => toast('세트를 브라우저에 저장하지 못했어요'));
   }, 300);
 }
@@ -1942,8 +2021,9 @@ async function loadSet(){
   try {
     const s = await IDB.get('set');
     if (s && Array.isArray(s.items)){
-      setData = { name: s.name || '내 이모티콘', author: s.author || '작가 이름', items: s.items };
-      await Promise.all(setData.items.map(hydrate));
+      setData = { name: s.name || '내 이모티콘', author: s.author || '작가 이름', items: s.items, thumb: s.thumb || null, store: { ...STORE_DEFAULT, ...(s.store || {}) } };
+      loadHeroImg();
+      await Promise.all([...setData.items, ...(setData.thumb ? [setData.thumb] : [])].map(hydrate));
     }
   } catch (e) {}
   updSetUI();
@@ -1968,7 +2048,24 @@ function itemFromCurrent(){
   }
   return { state, bgSrc, _img: img };
 }
+const getItem = id => id === 'THUMB' ? setData.thumb : setData.items.find(i => i.id === id);
+function saveThumb(){
+  setData.thumb = { id:'THUMB', ...itemFromCurrent() };
+  if (currentItemId === 'THUMB') dirty = false;
+  persistSet(); updSetUI(); toast('대표 이모티콘으로 저장했어요');
+}
+function itemToThumb(id){
+  const it = getItem(id); if (!it) return;
+  setData.thumb = { id:'THUMB', ...JSON.parse(JSON.stringify({ state: it.state, bgSrc: it.bgSrc })), _img: it._img };
+  persistSet(); updSetUI(); toast('대표 이모티콘으로 지정했어요');
+}
+function delThumb(){
+  if (!setData.thumb || !confirm('대표 이모티콘을 지울까요?')) return;
+  setData.thumb = null; if (currentItemId === 'THUMB'){ currentItemId = null; dirty = true; }
+  persistSet(); updSetUI();
+}
 function saveToSet(asNew){
+  if (!asNew && currentItemId === 'THUMB') return saveThumb();
   const data = itemFromCurrent();
   const it = !asNew && currentItemId && setData.items.find(i => i.id === currentItemId);
   if (it){ Object.assign(it, data); toast(`${setData.items.indexOf(it) + 1}번 이모티콘을 저장했어요`); }
@@ -1981,7 +2078,7 @@ function newEmoticon(){
   switchTab('text'); setTimeout(() => { const t = $('txtInput'); t.focus(); t.select(); }, 30);
 }
 function editItem(id){
-  const idx = setData.items.findIndex(i => i.id === id), it = setData.items[idx];
+  const idx = setData.items.findIndex(i => i.id === id), it = getItem(id);
   if (!it) return;
   if (dirty && currentItemId !== id && !confirm('저장하지 않은 작업이 있어요. 이 이모티콘을 불러올까요?')) return;
   const s = JSON.parse(JSON.stringify(it.state));
@@ -1998,7 +2095,7 @@ function editItem(id){
   currentItemId = id; hist = [snapshot()]; hIdx = 0; updUndo(); saveLocal();
   syncBgUI(); syncCutUI(); syncUI(); renderLayerList(); render();
   dirty = false; updSetUI(); closeModal('setModal');
-  toast(`${idx + 1}번 이모티콘을 불러왔어요`);
+  toast(id === 'THUMB' ? '대표 이모티콘을 불러왔어요' : `${idx + 1}번 이모티콘을 불러왔어요`);
 }
 function dupItem(id){
   const i = setData.items.findIndex(x => x.id === id); if (i < 0) return;
@@ -2020,90 +2117,233 @@ function moveItem(id, d){
 }
 function updSetUI(){
   const n = setData.items.length, idx = setData.items.findIndex(i => i.id === currentItemId);
+  const thumbEdit = currentItemId === 'THUMB';
   $('setPill').textContent = n + '개';
-  $('saveSetBtn').textContent = idx >= 0 ? '이 이모티콘 저장' : '세트에 담기';
-  $('editingNote').textContent = idx >= 0 ? `${idx + 1}번 이모티콘을 편집 중이에요${dirty ? ' · 저장 안 됨' : ''}` : '지금 만든 이모티콘을 세트에 모아 보세요.';
+  $('saveSetBtn').textContent = thumbEdit ? '대표 저장' : idx >= 0 ? '이 이모티콘 저장' : '세트에 담기';
+  $('editingNote').textContent = thumbEdit ? `대표 이모티콘을 편집 중이에요${dirty ? ' · 저장 안 됨' : ''}`
+    : idx >= 0 ? `${idx + 1}번 이모티콘을 편집 중이에요${dirty ? ' · 저장 안 됨' : ''}` : '지금 만든 이모티콘을 세트에 모아 보세요.';
   $('setCount').textContent = `${n}개`;
   if (!$('setModal').hidden) renderSetView();
 }
 function openSet(){ openModal('setModal'); renderSetView(); }
 const emoCv = (id, cls = '') => `<canvas class="emo-cv ${cls}" data-id="${id}"></canvas>`;
+const SI = {
+  left: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>`, right: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>`, star: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>`, dup: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 012-2h9"/></svg>`, del: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>`,
+};
+const nowLabel = () => { const d = new Date(), h = d.getHours(); return `${h < 12 ? '오전' : '오후'} ${h % 12 || 12}:${String(d.getMinutes()).padStart(2, '0')}`; };
+const coverId = () => setData.thumb ? 'THUMB' : setData.items[0] && setData.items[0].id;
 function renderSetView(){
   document.querySelectorAll('#setTabs button').forEach(b => b.classList.toggle('active', b.dataset.v === setView));
-  const items = setData.items, body = $('setBody');
+  const items = setData.items, body = $('setBody'), th = setData.thumb;
   if (setView === 'list'){
     body.innerHTML = `
-      <div class="set-meta">
-        <input type="text" id="setName" value="${esc(setData.name)}" placeholder="이모티콘 이름">
-        <input type="text" id="setAuthor" value="${esc(setData.author)}" placeholder="작가 이름">
-      </div>
-      ${items.length ? '' : '<div class="set-empty">아직 담긴 이모티콘이 없어요.<br>왼쪽의 <b>세트에 담기</b>를 누르면 지금 만든 이모티콘이 여기에 모여요.</div>'}
-      <div class="set-grid">
-        ${items.map((it, i) => `
-          <div class="emo-tile${it.id === currentItemId ? ' editing' : ''}" onclick="editItem('${it.id}')" title="눌러서 편집">
-            ${emoCv(it.id)}
-            <span class="emo-no">${String(i + 1).padStart(2, '0')}</span>
-            <div class="emo-acts" onclick="event.stopPropagation()">
-              <button onclick="moveItem('${it.id}',-1)" title="앞으로">←</button>
-              <button onclick="moveItem('${it.id}',1)" title="뒤로">→</button>
-              <button onclick="dupItem('${it.id}')">복제</button>
-              <button onclick="delItem('${it.id}')">삭제</button>
+      <div class="set-wrap">
+        <div class="set-name">
+          <input type="text" id="setName" value="${esc(setData.name)}" placeholder="이모티콘 이름">
+          <input type="text" id="setAuthor" value="${esc(setData.author)}" placeholder="작가 이름">
+        </div>
+        <div class="set-sec">
+          <div class="set-sec-hd">대표 이모티콘 <small>스토어 맨 위와 채팅 탭 아이콘에 쓰여요</small></div>
+          <div class="thumb-row">
+            <div class="thumb-slot${th ? '' : ' empty'}${currentItemId === 'THUMB' ? ' editing' : ''}" onclick="${th ? "editItem('THUMB')" : 'saveThumb()'}">${th ? emoCv('THUMB') : '비어 있어요<br>눌러서 저장'}</div>
+            <div class="thumb-info">
+              <b>${th ? '대표 이모티콘' : '아직 대표가 없어요'}</b>
+              <p>${th ? '누르면 편집 화면으로 불러와요.' : '지금 작업을 대표로 저장하거나, 아래 이모티콘의 ★ 버튼으로 지정해요.'}</p>
+              <div class="row">
+                <button class="btn btn-ghost" onclick="saveThumb()">지금 작업을 대표로</button>
+                ${th ? '<button class="btn btn-ghost" onclick="delThumb()">지우기</button>' : ''}
+              </div>
             </div>
-          </div>`).join('')}
-        <button class="emo-add" onclick="saveToSet(true)">+<br>지금 작업<br>새로 담기</button>
+          </div>
+        </div>
+        <div class="set-sec">
+          <div class="set-sec-hd">이모티콘 <small>${items.length}개 · 누르면 편집, 올리면 순서·대표·복제·삭제</small></div>
+          ${items.length ? '' : '<div class="set-empty">아직 담긴 이모티콘이 없어요.<br>왼쪽 <b>세트에 담기</b>를 누르면 여기에 모여요.</div>'}
+          <div class="set-grid">
+            ${items.map((it, i) => `
+              <div class="emo-tile${it.id === currentItemId ? ' editing' : ''}" onclick="editItem('${it.id}')">
+                ${emoCv(it.id)}
+                <span class="emo-no">${String(i + 1).padStart(2, '0')}</span>
+                <div class="emo-acts" onclick="event.stopPropagation()">
+                  <button onclick="moveItem('${it.id}',-1)" title="앞으로">${SI.left}</button>
+                  <button onclick="moveItem('${it.id}',1)" title="뒤로">${SI.right}</button>
+                  <button onclick="itemToThumb('${it.id}')" title="대표로 지정">${SI.star}</button>
+                  <button onclick="dupItem('${it.id}')" title="복제">${SI.dup}</button>
+                  <button class="danger" onclick="delItem('${it.id}')" title="삭제">${SI.del}</button>
+                </div>
+              </div>`).join('')}
+            <button class="emo-add" onclick="saveToSet(true)"><span>+</span>지금 작업<br>새로 담기</button>
+          </div>
+        </div>
       </div>
       <div class="set-foot">
-        <span class="hint" style="margin:0">타일을 누르면 편집 화면으로 불러와요.</span>
+        <span class="hint" style="margin:0">ZIP에는 01~${String(Math.max(items.length, 1)).padStart(2, '0')}번${th ? '과 대표(thumbnail)' : ''}가 들어가요.</span>
         <div class="grow"></div>
         <div class="seg" id="zipSize"><button data-v="360" class="active">360px</button><button data-v="240">240px</button><button data-v="600">600px</button></div>
-        <button class="btn btn-primary" id="zipBtn" onclick="exportSet()" ${items.length ? '' : 'disabled'}>전체 저장 (ZIP)</button>
-      </div>
-      <div class="progress" id="setProg" hidden><div></div></div>`;
+        <button class="btn btn-primary" id="zipBtn" onclick="exportSet()" ${items.length || th ? '' : 'disabled'}>전체 저장 (ZIP)</button>
+        <div class="progress" id="setProg" hidden><div></div></div>
+      </div>`;
     $('setName').addEventListener('input', e => { setData.name = e.target.value; persistSet(); });
     $('setAuthor').addEventListener('input', e => { setData.author = e.target.value; persistSet(); });
     $('zipSize').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (!b) return; $('zipSize').querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b)); });
   } else if (!items.length){
-    body.innerHTML = '<div class="set-empty">세트에 이모티콘을 먼저 담아 주세요.</div>';
+    body.innerHTML = '<div class="set-wrap"><div class="set-empty">세트에 이모티콘을 먼저 담아 주세요.</div></div>';
   } else if (setView === 'store'){
-    const anim = items.some(it => withItem(it, hasAnim));
+    const st = setData.store;
     body.innerHTML = `
-      <div class="store">
-        <div class="store-hero">${emoCv(items[0].id)}</div>
-        <div class="store-info">
-          <div class="store-title">${esc(setData.name || '내 이모티콘')}</div>
-          <div class="store-author">${esc(setData.author || '')}</div>
-          <div class="store-tags"><span>${anim ? '움직이는 이모티콘' : '멈춰있는 이모티콘'}</span><span>${items.length}개</span></div>
-          <button class="store-buy">구매하기</button>
+      <div class="store-layout">
+        <div class="store-panel">
+          <div class="sp-hd">상단 이미지</div>
+          <div class="seg" id="heroMode">
+            <button data-v="thumb">대표</button><button data-v="item">고르기</button><button data-v="upload">첨부</button>
+          </div>
+          <div id="heroPick" class="pick-grid">${items.map(it => `<button data-id="${it.id}" title="이 이모티콘으로">${emoCv(it.id)}</button>`).join('')}</div>
+          <div id="heroUp">
+            <button class="btn btn-ghost btn-full" onclick="$('heroFile').click()">${st.heroSrc ? '다른 이미지 고르기' : '이미지 첨부하기'}</button>
+            <input type="file" id="heroFile" accept="image/*" hidden>
+          </div>
+          <div class="sp-hd">배경 그라데이션</div>
+          <div class="row">
+            <input type="color" id="heroG1" value="${st.g1}"><input type="color" id="heroG2" value="${st.g2}">
+            <div class="grow"></div>
+            ${HERO_GRADS.map(([a, b]) => `<button class="grad-dot" data-g="${a},${b}" style="background:linear-gradient(135deg,${a},${b})"></button>`).join('')}
+          </div>
+          <div class="sp-hd">태그 <small>쉼표로 구분</small></div>
+          <input type="text" id="storeTagsIn" value="${esc(st.tags)}" placeholder="${esc(autoTags().join(', '))}">
+          <div class="sp-hd">버튼 문구</div>
+          <input type="text" id="storeBuyIn" value="${esc(st.buy)}" placeholder="구매하기">
+          <p class="hint">이름과 작가는 목록 탭에서 바꿔요.</p>
         </div>
-        <div class="store-grid">${items.map(it => emoCv(it.id)).join('')}</div>
-      </div>
-      <div class="mock-note">실제 판매 화면이 아닌 미리보기예요.</div>`;
+        <div>
+          <div class="store">
+            <div class="store-hero" id="storeHero"></div>
+            <div class="store-info">
+              <div class="store-title">${esc(setData.name || '내 이모티콘')}</div>
+              <div class="store-author">${esc(setData.author || '')}</div>
+              <div class="store-tags" id="storeTags"></div>
+              <button class="store-buy" id="storeBuy"></button>
+            </div>
+            <div class="store-grid">${items.map(it => `<div class="cell">${emoCv(it.id)}</div>`).join('')}</div>
+          </div>
+          <div class="mock-note">실제 판매 화면이 아닌 미리보기예요.</div>
+        </div>
+      </div>`;
+    bindStorePanel(); updStoreMock();
   } else {
-    if (!chatMsgs) chatMsgs = [{ t:'them', text:'뭐 해?' }, { t:'me', emo: items[0].id }, { t:'them', text:'헐 귀여워' }];
+    if (!chatMsgs) chatMsgs = items.slice(0, 2).map(it => ({ emo: it.id, time: nowLabel() }));
+    const sv = (d, s = 16, sw = 2) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
     body.innerHTML = `
       <div class="phone">
-        <div class="phone-top">친구</div>
+        <div class="island"></div>
+        <div class="status">
+          <span>9:41</span>
+          <span class="ic">
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+            <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor"><path d="M7.5 2.2c2.1 0 4 .8 5.4 2.1l1.1-1.1A9.2 9.2 0 007.5.6 9.2 9.2 0 001 3.2l1.1 1.1A7.6 7.6 0 017.5 2.2zm0 3.2c1.2 0 2.3.4 3.2 1.2l1.1-1.1a6.2 6.2 0 00-8.6 0l1.1 1.1c.9-.8 2-1.2 3.2-1.2zm0 3.1c-.5 0-.9.2-1.2.5L7.5 10.2 8.7 9c-.3-.3-.7-.5-1.2-.5z"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="16" height="8" rx="2" fill="currentColor"/><rect x="22.5" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".4"/></svg>
+          </span>
+        </div>
+        <div class="chat-head">
+          <span class="back">${sv('<path d="M15 6l-6 6 6 6"/>', 20, 2.2)}</span>
+          <div class="avatar" style="background:linear-gradient(135deg,${setData.store.g1},${setData.store.g2})"></div>
+          <div class="chat-name">친구</div>
+        </div>
         <div class="chat" id="chatLog"></div>
-        <div class="chat-input"><span class="fake">메시지 입력</span></div>
+        <div class="composer">
+          <span class="cbtn">${sv('<path d="M12 5v14M5 12h14"/>', 18)}</span>
+          <span class="field">메시지 보내기</span>
+          <span class="cbtn on">${sv('<circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c.9 1.2 2.1 1.8 3.5 1.8s2.6-.6 3.5-1.8M9 9.5h.01M15 9.5h.01"/>', 18)}</span>
+        </div>
+        <div class="tray-tabs">
+          <span class="tray-tab">${sv('<circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2"/>', 16)}</span>
+          <span class="tray-tab on">${emoCv(coverId())}</span>
+        </div>
         <div class="tray">${items.map(it => `<button onclick="sendEmo('${it.id}')">${emoCv(it.id)}</button>`).join('')}</div>
+        <div class="home-bar"></div>
       </div>
-      <div class="mock-note">아래 이모티콘을 누르면 채팅방에 보내져요.</div>`;
+      <div class="mock-note">아래 이모티콘을 누르면 채팅방에 보내져요 · <button onclick="clearChat()">대화 지우기</button></div>`;
     renderChat();
   }
   drawEmoCanvases(true);
 }
+function autoTags(){
+  const all = [...setData.items, ...(setData.thumb ? [setData.thumb] : [])];
+  const anim = all.some(it => withItem(it, hasAnim));
+  return [anim ? '움직이는 이모티콘' : '멈춰있는 이모티콘', setData.items.length + '개'];
+}
+function loadHeroImg(){
+  heroImg = null;
+  const src = setData.store && setData.store.heroSrc; if (!src) return;
+  const im = new Image(); im.onload = () => { heroImg = im; if (setView === 'store' && !$('setModal').hidden) updStoreMock(); }; im.src = src;
+}
+function heroHTML(){
+  const st = setData.store;
+  if (st.heroMode === 'upload' && st.heroSrc) return `<img src="${st.heroSrc}" alt="">`;
+  if (st.heroMode === 'item' && getItem(st.heroItem)) return emoCv(st.heroItem);
+  return emoCv(coverId());
+}
+function updStoreMock(){
+  const st = setData.store, hero = $('storeHero'); if (!hero) return;
+  hero.style.background = `radial-gradient(120% 90% at 50% 0%, ${st.g1} 0%, ${st.g2} 58%, #fff 100%)`;
+  const html = heroHTML(); if (hero.dataset.k !== html){ hero.innerHTML = html; hero.dataset.k = html; }
+  const tags = st.tags.trim() ? st.tags.split(',').map(t => t.trim()).filter(Boolean) : autoTags();
+  $('storeTags').innerHTML = tags.map(t => `<span>${esc(t)}</span>`).join('');
+  $('storeBuy').textContent = st.buy.trim() || '구매하기';
+  document.querySelectorAll('#heroMode button').forEach(b => b.classList.toggle('active', b.dataset.v === st.heroMode));
+  $('heroPick').style.display = st.heroMode === 'item' ? '' : 'none';
+  $('heroUp').style.display = st.heroMode === 'upload' ? '' : 'none';
+  document.querySelectorAll('#heroPick button').forEach(b => b.classList.toggle('on', b.dataset.id === st.heroItem));
+  document.querySelectorAll('.grad-dot').forEach(b => b.classList.toggle('on', b.dataset.g === st.g1 + ',' + st.g2));
+  drawEmoCanvases(true);
+}
+function bindStorePanel(){
+  const st = setData.store, save = () => { persistSet(); updStoreMock(); };
+  $('heroMode').addEventListener('click', e => {
+    const b = e.target.closest('[data-v]'); if (!b) return;
+    st.heroMode = b.dataset.v;
+    if (st.heroMode === 'item' && !getItem(st.heroItem)) st.heroItem = setData.items[0] && setData.items[0].id;
+    if (st.heroMode === 'upload' && !st.heroSrc) $('heroFile').click();
+    save();
+  });
+  $('heroPick').addEventListener('click', e => { const b = e.target.closest('[data-id]'); if (!b) return; st.heroItem = b.dataset.id; save(); });
+  $('heroFile').addEventListener('change', e => {
+    const f = e.target.files[0]; if (!f || !f.type.startsWith('image/')) return;
+    const r = new FileReader();
+    r.onload = ev => {
+      const im = new Image();
+      im.onload = () => {
+        const s = Math.min(1, 600 / Math.max(im.width, im.height)), c = document.createElement('canvas');
+        c.width = Math.round(im.width * s); c.height = Math.round(im.height * s);
+        c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+        st.heroSrc = c.toDataURL('image/png'); st.heroMode = 'upload'; loadHeroImg(); save();
+        e.target.previousElementSibling.textContent = '다른 이미지 고르기';
+      };
+      im.src = ev.target.result;
+    };
+    r.readAsDataURL(f);
+  });
+  $('heroG1').addEventListener('input', e => { st.g1 = e.target.value; save(); });
+  $('heroG2').addEventListener('input', e => { st.g2 = e.target.value; save(); });
+  document.querySelectorAll('.grad-dot').forEach(b => b.addEventListener('click', () => {
+    [st.g1, st.g2] = b.dataset.g.split(','); $('heroG1').value = st.g1; $('heroG2').value = st.g2; save();
+  }));
+  $('storeTagsIn').addEventListener('input', e => { st.tags = e.target.value; save(); });
+  $('storeBuyIn').addEventListener('input', e => { st.buy = e.target.value; save(); });
+}
 function renderChat(){
   const log = $('chatLog'); if (!log) return;
-  log.innerHTML = chatMsgs.filter(m => m.text || setData.items.some(i => i.id === m.emo))
-    .map(m => m.text ? `<div class="msg ${m.t}">${esc(m.text)}</div>` : emoCv(m.emo, 'msg-emo ' + m.t)).join('');
+  const msgs = chatMsgs.filter(m => getItem(m.emo));
+  log.innerHTML = msgs.length
+    ? '<div class="day">오늘</div>' + msgs.map((m, i) => {
+        const last = i === msgs.length - 1 || msgs[i + 1].time !== m.time;
+        return `<div class="sent"><div class="meta">${last ? `<i>1</i>${m.time}` : ''}</div>${emoCv(m.emo)}</div>`;
+      }).join('')
+    : '<div class="chat-hint">아래에서 이모티콘을 눌러<br>보내 보세요</div>';
   log.scrollTop = log.scrollHeight;
   drawEmoCanvases(true);
 }
-const REPLIES = ['ㅋㅋㅋㅋ', '귀여워!', '이거 뭐야 ㅋㅋㅋ', '나도 줘', '찰떡이다', '웃겨 ㅋㅋ'];
-function sendEmo(id){
-  chatMsgs.push({ t:'me', emo:id }); renderChat();
-  if (Math.random() < 0.5) setTimeout(() => { chatMsgs.push({ t:'them', text: REPLIES[Math.floor(Math.random() * REPLIES.length)] }); renderChat(); }, 700);
-}
+function sendEmo(id){ chatMsgs.push({ emo: id, time: nowLabel() }); renderChat(); }
+function clearChat(){ chatMsgs = []; renderChat(); }
 let lastSetDraw = 0;
 function setTick(now){
   if (!$('setModal').hidden && now - lastSetDraw > 33){ lastSetDraw = now; drawEmoCanvases(false); }
@@ -2113,7 +2353,7 @@ function drawEmoCanvases(force){
   const d = Math.min(2, devicePixelRatio || 1);
   document.querySelectorAll('#setModal .emo-cv').forEach(cv => {
     if (!cv.offsetParent) return;
-    const it = setData.items.find(i => i.id === cv.dataset.id); if (!it) return;
+    const it = getItem(cv.dataset.id); if (!it) return;
     const size = Math.round(cv.clientWidth * d); if (!size) return;
     if (cv.width !== size){ cv.width = cv.height = size; cv._static = false; }
     if (cv._static && !force) return;
@@ -2151,14 +2391,15 @@ function makeZip(files){
   return new Blob([...parts, ...central, new Uint8Array(end.buffer)], { type:'application/zip' });
 }
 async function exportSet(){
-  if (setExporting || !setData.items.length) return;
+  if (setExporting || (!setData.items.length && !setData.thumb)) return;
   setExporting = true; $('zipBtn').disabled = true; $('zipBtn').textContent = '만드는 중…';
   const S = +($('zipSize').querySelector('.active')?.dataset.v || 360), fps = 20, matte = hexRgb($('matteColor').value);
   const prog = $('setProg'), bar = prog.firstElementChild; prog.hidden = false; bar.style.width = '0';
-  const n = setData.items.length, files = [];
+  const list = [...setData.items.map((it, k) => ({ it, base: String(k + 1).padStart(2, '0') })), ...(setData.thumb ? [{ it: setData.thumb, base: 'thumbnail' }] : [])];
+  const n = list.length, files = [];
   try {
     for (let k = 0; k < n; k++){
-      const it = setData.items[k], no = String(k + 1).padStart(2, '0');
+      const { it, base: no } = list[k];
       const job = withItem(it, () => {
         if (!hasAnim()) return { png: renderFrame(S, null) };
         const N = Math.max(2, Math.round(loopSec * fps)), frames = [];
@@ -2178,7 +2419,7 @@ async function exportSet(){
     const url = URL.createObjectURL(makeZip(files));
     const a = document.createElement('a'); a.href = url; a.download = (setData.name.trim() || 'emoticons').replace(/[\\/:*?"<>|]/g, '_') + '.zip';
     document.body.appendChild(a); a.click(); a.remove();
-    toast(`${n}개를 ZIP으로 저장했어요`);
+    toast(`${setData.items.length}개${setData.thumb ? ' + 대표' : ''}를 ZIP으로 저장했어요`);
   } catch (e){ console.error(e); toast('저장 중 오류가 났어요'); }
   setExporting = false;
   if ($('zipBtn')){ $('zipBtn').disabled = false; $('zipBtn').textContent = '전체 저장 (ZIP)'; }
@@ -2247,9 +2488,9 @@ function bindUI(){
   });
   window.addEventListener('resize', render);
   $('motionTarget').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (!b) return; motionTarget = b.dataset.v; syncUI(); });
-  $('cutTol').addEventListener('input', e => { $('cutTolV').textContent = e.target.value; scheduleCut(); });
-  $('cutColor').addEventListener('input', () => { syncCutUI(); scheduleCut(); });
-  ['cutSoft'].forEach(id => $(id).addEventListener('click', e => { e.currentTarget.classList.toggle('on'); scheduleCut(); }));
+  $('cutTol').addEventListener('input', e => { $('cutTolV').textContent = e.target.value; scheduleCut(); scheduleCommit(); });
+  $('cutColor').addEventListener('input', () => { syncCutUI(); scheduleCut(); scheduleCommit(); });
+  ['cutSoft'].forEach(id => $(id).addEventListener('click', e => { e.currentTarget.classList.toggle('on'); scheduleCut(); commit(); }));
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
