@@ -447,9 +447,9 @@ input[type=color]::-moz-color-swatch{border:1.5px solid #fff;border-radius:50%}
     <span class="stage-info" id="stageInfo"></span>
   </div>
   <div class="caption desktop">
-    <b>드래그</b> 이동 · <b>Shift+드래그</b> 크기 · <b>우클릭+드래그</b> 회전 · <b>더블클릭</b> 편집 · <b>방향키</b> 미세 이동 · <b>Ctrl+D</b> 복제
+    <b>드래그</b> 이동 · <b>모서리</b>·<b>휠</b> 크기 · <b>우클릭+드래그</b> 회전 · <b>더블클릭</b> 편집 · <b>방향키</b> 미세 이동 · <b>Ctrl+D</b> 복제
   </div>
-  <div class="caption mobile">탭 선택 · 드래그 이동 · 모서리 손잡이로 크기/회전 · 더블탭 편집</div>
+  <div class="caption mobile">탭 선택 · 드래그 이동 · 모서리 손잡이·두 손가락으로 크기 · 더블탭 편집</div>
 </main>
 
 <!-- ═════════ Right panel ═════════ -->
@@ -1133,6 +1133,7 @@ function render(){
   drawGuides();
   const l = selLayer();
   if (l && !l.hidden) drawSelRing(l);
+  else if (imgSel && bgImage) drawImgRing();
 }
 function drawGuides(){
   if (!guideX && !guideY) return;
@@ -1176,7 +1177,7 @@ function addTextLayer(text = '새 텍스트', extra = {}, focus = false){
   return l;
 }
 function select(id){
-  selId = id;
+  selId = id; if (id !== null) imgSel = false;
   const l = selLayer();
   if (l) STYLE_KEYS.forEach(k => draft[k] = l[k]);
   syncUI(); renderLayerList(); render();
@@ -1396,7 +1397,7 @@ function loadImageFile(file){
       baseScale = Math.max(W / img.width, H / img.height);
       bgScale = baseScale;
       bgPanX = (W - img.width * bgScale) / 2; bgPanY = (H - img.height * bgScale) / 2;
-      syncBgUI(); render(); commit(); toast('배경 이미지를 넣었어요');
+      imgSel = true; if (selId !== null) select(null); syncBgUI(); render(); commit(); toast('사진을 넣었어요 · 모서리를 끌어 크기 조절');
     };
     img.src = ev.target.result;
   };
@@ -1414,7 +1415,7 @@ function fitBg(how){
   bgPanX = (W - bgImage.width * bgScale) / 2; bgPanY = (H - bgImage.height * bgScale) / 2;
   syncBgUI(); render(); commit();
 }
-function removeBg(){ if (!bgImage) return; bgImage = null; bgOriginal = null; origData = null; cutOn = false; holeMode = false; holeSeeds = []; syncCutUI(); baseScale = bgScale = 1; bgPanX = bgPanY = 0; $('fileInput').value = ''; syncBgUI(); render(); toast('배경 이미지를 지웠어요'); }
+function removeBg(){ if (!bgImage) return; imgSel = false; bgImage = null; bgOriginal = null; origData = null; cutOn = false; holeMode = false; holeSeeds = []; syncCutUI(); baseScale = bgScale = 1; bgPanX = bgPanY = 0; $('fileInput').value = ''; syncBgUI(); render(); toast('배경 이미지를 지웠어요'); }
 function toggleBgLock(){ bgLocked = !bgLocked; syncBgUI(); toast(bgLocked ? '배경 이미지를 고정했어요' : '배경 이미지를 움직일 수 있어요'); }
 
 /* ─────────── 배경 지우기 ─────────── */
@@ -1540,6 +1541,41 @@ function pickColorAt(x, y){
   syncCutUI(); runCut();
 }
 
+
+/* ─────────── 사진 직접 크기 조절 ─────────── */
+let imgSel = false;
+const pointers = new Map();
+function imgRect(){ const w = bgImage.width * bgScale, h = bgImage.height * bgScale; return { x: bgPanX, y: bgPanY, w, h, cx: bgPanX + w / 2, cy: bgPanY + h / 2 }; }
+function inImg(x, y){ if (!bgImage) return false; const r = imgRect(); return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h; }
+function imgCorners(){ const r = imgRect(); return [[r.x, r.y], [r.x + r.w, r.y], [r.x, r.y + r.h], [r.x + r.w, r.y + r.h]]; }
+function hitImgHandle(x, y){
+  if (!imgSel || !bgImage || bgLocked) return false;
+  const u = uiScale();
+  return imgCorners().some(([cx, cy]) => Math.hypot(x - cx, y - cy) < 16 * u);
+}
+function setImgScale(ns, ax, ay){
+  // ax, ay: 이 점을 기준으로 확대/축소
+  ns = Math.max(baseScale * 0.05, Math.min(baseScale * 4, ns));
+  bgPanX = ax - (ax - bgPanX) * (ns / bgScale);
+  bgPanY = ay - (ay - bgPanY) * (ns / bgScale);
+  bgScale = ns;
+  const pct = Math.round(bgScale / baseScale * 100);
+  $('bgScaleRange').value = Math.min(300, Math.max(10, pct)); $('bgScaleV').textContent = pct + '%';
+}
+function drawImgRing(){
+  const r = imgRect(), u = uiScale(), hs = 4.5 * u;
+  ctx.save();
+  ctx.strokeStyle = bgLocked ? 'rgba(161,161,169,.9)' : 'rgba(59,108,255,.9)'; ctx.lineWidth = 1.2 * u;
+  ctx.setLineDash(bgLocked ? [5 * u, 4 * u] : []);
+  ctx.strokeRect(r.x, r.y, r.w, r.h); ctx.setLineDash([]);
+  if (!bgLocked) for (const [cx, cy] of imgCorners()){
+    ctx.beginPath(); ctx.rect(cx - hs, cy - hs, hs * 2, hs * 2);
+    ctx.fillStyle = '#fff'; ctx.fill(); ctx.strokeStyle = '#3b6cff'; ctx.stroke();
+  }
+  ctx.restore();
+}
+function setImgSel(v){ if (imgSel === v) return; imgSel = v; render(); }
+
 /* ─────────── 캔버스 조작 ─────────── */
 function coords(e){
   const r = canvas.getBoundingClientRect();
@@ -1577,6 +1613,13 @@ canvas.addEventListener('pointerdown', e => {
   if (holeMode && cutOn){ const { x, y } = coords(e); addHole(x, y); return; }
   try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
   const { x, y } = coords(e); moved = false;
+  pointers.set(e.pointerId, { x, y });
+  // 두 손가락: 사진 확대/축소
+  if (pointers.size === 2 && bgImage && !bgLocked && (imgSel || !selLayer())){
+    const [a, b] = [...pointers.values()];
+    mode = 'pinch'; start = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, s: bgScale, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
+    imgSel = true; return;
+  }
   if (e.pointerType !== 'mouse'){
     const now = Date.now();
     if (now - lastTap < 320){ lastTap = 0; const l = hitTest(x, y); if (l){ openTextEdit(l.id); return; } }
@@ -1586,21 +1629,44 @@ canvas.addEventListener('pointerdown', e => {
   if (e.button === 2){ const l = s || hitTest(x, y); if (l){ if (l.id !== selId) select(l.id); beginRotate(l, x, y); } return; }
   const h = hitHandle(x, y);
   if (h){ h === 'rot' ? beginRotate(s, x, y) : beginResize(s, x, y); return; }
+  if (hitImgHandle(x, y)){
+    const r = imgRect(); mode = 'imgResize'; start = { cx: r.cx, cy: r.cy, d: Math.hypot(x - r.cx, y - r.cy) || 1, s: bgScale };
+    canvas.style.cursor = 'nwse-resize'; return;
+  }
   const l = hitTest(x, y);
   if (l){
+    imgSel = false;
     if (l.id !== selId) select(l.id);
     if (l.locked) return;
     if (e.shiftKey) beginResize(l, x, y);
     else { mode = 'drag'; start = { dx: x - l.x, dy: y - l.y }; canvas.style.cursor = 'grabbing'; }
-  } else if (bgImage && !bgLocked){
-    mode = 'pan'; start = { dx: x - bgPanX, dy: y - bgPanY }; canvas.style.cursor = 'grabbing';
-    if (selId !== null) select(null);
-  } else if (selId !== null) select(null);
+  } else if (bgImage && inImg(x, y)){
+    imgSel = true;
+    if (selId !== null) select(null); else render();
+    if (!bgLocked){ mode = 'pan'; start = { dx: x - bgPanX, dy: y - bgPanY }; canvas.style.cursor = 'grabbing'; }
+  } else { imgSel = false; if (selId !== null) select(null); else render(); }
 });
+canvas.addEventListener('wheel', e => {
+  if (!bgImage || bgLocked) return;
+  const { x, y } = coords(e);
+  if (hitTest(x, y) || !(inImg(x, y) || imgSel)) return;
+  e.preventDefault();
+  imgSel = true; if (selId !== null) select(null);
+  setImgScale(bgScale * Math.exp(-e.deltaY * 0.0015), x, y);
+  render(); scheduleCommit();
+}, { passive: false });
 canvas.addEventListener('pointermove', e => {
   const { x, y } = coords(e);
+  if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x, y });
+  if (mode === 'pinch'){
+    if (pointers.size < 2) return;
+    const [a, b] = [...pointers.values()];
+    const d = Math.hypot(a.x - b.x, a.y - b.y);
+    setImgScale(start.s * d / start.d, start.mx, start.my); moved = true; render(); return;
+  }
   if (!mode){
     if (pickMode || (holeMode && cutOn)){ canvas.style.cursor = 'crosshair'; return; }
+    if (hitImgHandle(x, y) && !hitHandle(x, y)){ canvas.style.cursor = 'nwse-resize'; return; }
     const h = hitHandle(x, y);
     canvas.style.cursor = h === 'rot' ? 'crosshair' : h ? 'nwse-resize' : hitTest(x, y) ? 'grab' : (bgImage && !bgLocked ? 'move' : 'default');
     return;
@@ -1620,9 +1686,12 @@ canvas.addEventListener('pointermove', e => {
     l.rotate = e.shiftKey ? Math.round(r / 15) * 15 : Math.round(r);
     draft.rotate = l.rotate; syncUI();
   } else if (mode === 'pan'){ bgPanX = x - start.dx; bgPanY = y - start.dy; }
+  else if (mode === 'imgResize'){ setImgScale(start.s * Math.hypot(x - start.cx, y - start.cy) / start.d, start.cx, start.cy); }
   render();
 });
-function endPointer(){
+function endPointer(e){
+  if (e && e.pointerId != null) pointers.delete(e.pointerId);
+  if (mode === 'pinch' && pointers.size > 0) return;
   if (mode && moved){ commit(); if (mode === 'resize') renderLayerList(); }
   mode = null; guideX = guideY = false; canvas.style.cursor = 'default'; render();
 }
@@ -1632,7 +1701,7 @@ canvas.addEventListener('contextmenu', e => e.preventDefault());
 canvas.addEventListener('dblclick', e => { const { x, y } = coords(e); const l = hitTest(x, y); if (l) openTextEdit(l.id); });
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape'){ document.querySelectorAll('.modal').forEach(m => m.hidden = true); if (pickMode || holeMode){ pickMode = holeMode = false; syncCutUI(); canvas.style.cursor = 'default'; } return; }
+  if (e.key === 'Escape'){ document.querySelectorAll('.modal').forEach(m => m.hidden = true); if (pickMode || holeMode){ pickMode = holeMode = false; syncCutUI(); canvas.style.cursor = 'default'; } if (imgSel) setImgSel(false); return; }
   const tag = document.activeElement && document.activeElement.tagName;
   const typing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
   const mod = e.ctrlKey || e.metaKey, key = e.key.toLowerCase();
