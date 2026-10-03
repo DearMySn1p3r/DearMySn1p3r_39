@@ -365,6 +365,8 @@ input[type=color]::-moz-color-swatch{border:1.5px solid #fff;border-radius:50%}
 @media (max-width:860px){
   .set-card{height:calc(100dvh - 32px)}
   .set-top .seg{flex-basis:100%;margin-left:0;order:3}
+  .set-title{flex:1}
+  .set-top{gap:8px 12px}
   .set-grid{grid-template-columns:repeat(3,1fr)}
   .store-layout{flex-direction:column;align-items:stretch;padding-top:16px}
   .store-panel{width:auto;position:static}
@@ -1858,6 +1860,7 @@ canvas.addEventListener('dblclick', e => { const { x, y } = coords(e); const l =
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape'){ document.querySelectorAll('.modal').forEach(m => m.hidden = true); if (pickMode || holeMode){ pickMode = holeMode = false; syncCutUI(); canvas.style.cursor = 'default'; } if (imgSel) setImgSel(false); return; }
+  if ([...document.querySelectorAll('.modal')].some(m => !m.hidden)) return;   // 모달이 열려 있으면 편집 단축키 무시
   const tag = document.activeElement && document.activeElement.tagName;
   const typing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
   const mod = e.ctrlKey || e.metaKey, key = e.key.toLowerCase();
@@ -1888,6 +1891,7 @@ document.addEventListener('keydown', e => {
 document.addEventListener('paste', e => {
   const tag = document.activeElement && document.activeElement.tagName;
   if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+  if ([...document.querySelectorAll('.modal')].some(m => !m.hidden)) return;
   const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith('image/'));
   if (item){ e.preventDefault(); loadImageFile(item.getAsFile()); }
 });
@@ -2299,7 +2303,6 @@ function renderSetView(){
         <div class="chat-head">
           <span class="back">${sv('<path d="M15 6l-6 6 6 6"/>', 20, 2.2)}</span>
           <div class="avatar" style="background:linear-gradient(135deg,${setData.store.g1},${setData.store.g2})"></div>
-          <div class="chat-name">친구</div>
         </div>
         <div class="chat" id="chatLog"></div>
         <div class="composer">
