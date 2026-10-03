@@ -7,7 +7,17 @@
 <link rel="icon" type="image/png" href="MOMO.png">
 <link rel="apple-touch-icon" href="MOMO.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=DM+Mono:wght@400;500&family=Jua&family=Do+Hyeon&family=Gugi&family=Gaegu&family=Nanum+Brush+Script&family=Nanum+Pen+Script&family=Hi+Melody&family=East+Sea+Dokdo&family=Sunflower:wght@700&family=Bubblegum+Sans&family=Fredoka+One&family=Pacifico&family=Boogaloo&family=Lilita+One&family=Righteous&family=Comfortaa:wght@700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=DM+Mono:wght@400;500&family=Jua&family=Gowun+Dodum&family=Bagel+Fat+One&family=Dongle:wght@400;700&family=Single+Day&family=Fredoka:wght@500;600&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://hangeul.pstatic.net/hangeul_static/css/nanum-square-round.css" rel="stylesheet">
+<style>
+/* 무료 한글 웹폰트 (상업적 이용 가능 폰트들) */
+@font-face{font-family:'Cafe24Ssurround';src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/Cafe24Ssurround.woff') format('woff');font-display:swap}
+@font-face{font-family:'yg-jalnan';src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_four@1.2/JalnanOTF00.woff') format('woff');font-display:swap}
+@font-face{font-family:'TmoneyRoundWind';src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-07@1.0/TmoneyRoundWindExtraBold.woff') format('woff');font-display:swap}
+@font-face{font-family:'GmarketSans';src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff') format('woff');font-display:swap}
+@font-face{font-family:'Binggrae';src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/Binggrae.woff') format('woff');font-display:swap}
+@font-face{font-family:'omyu_pretty';src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2304-01@1.0/omyu_pretty.woff2') format('woff2');font-display:swap}
+</style>
 
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -713,26 +723,27 @@ const mctx = document.createElement('canvas').getContext('2d');   // 측정용
 
 /* ─────────── 데이터 ─────────── */
 const FONTS = [
-  ['한글', [
-    ["'Noto Sans KR',sans-serif", '노토산스'],
+  ['둥글고 귀여운', [
     ["'Jua','Noto Sans KR',sans-serif", '주아'],
-    ["'Do Hyeon','Noto Sans KR',sans-serif", '도현'],
-    ["'Gugi','Noto Sans KR',cursive", '구기'],
-    ["'Sunflower','Noto Sans KR',sans-serif", '선플라워'],
-    ["'Gaegu','Noto Sans KR',cursive", '개구'],
-    ["'Hi Melody','Noto Sans KR',cursive", '하이멜로디'],
-    ["'Nanum Pen Script','Noto Sans KR',cursive", '나눔펜체'],
-    ["'Nanum Brush Script','Noto Sans KR',cursive", '나눔붓체'],
-    ["'East Sea Dokdo','Noto Sans KR',cursive", '동해독도'],
+    ["'Cafe24Ssurround','Jua',sans-serif", '카페24 써라운드'],
+    ["'TmoneyRoundWind','Jua',sans-serif", '티머니 둥근바람'],
+    ["'NanumSquareRoundEB','Jua',sans-serif", '나눔스퀘어 라운드'],
+    ["'Bagel Fat One','Jua',sans-serif", '베이글'],
+    ["'Dongle','Jua',sans-serif", '동글'],
+  ]],
+  ['깔끔한', [
+    ["'yg-jalnan','Jua',sans-serif", '잘난체'],
+    ["'GmarketSans','Noto Sans KR',sans-serif", 'G마켓 산스'],
+    ["'Binggrae','Noto Sans KR',sans-serif", '빙그레체'],
+    ["'Gowun Dodum','Noto Sans KR',sans-serif", '고운돋움'],
+  ]],
+  ['손글씨', [
+    ["'omyu_pretty','Jua',cursive", '오뮤 다예쁨'],
+    ["'Single Day','Jua',cursive", '싱글데이'],
   ]],
   ['English', [
-    ["'Fredoka One','Noto Sans KR',cursive", 'Fredoka'],
-    ["'Pacifico','Noto Sans KR',cursive", 'Pacifico'],
-    ["'Lilita One','Noto Sans KR',cursive", 'Lilita'],
-    ["'Bubblegum Sans','Noto Sans KR',cursive", 'Bubblegum'],
-    ["'Boogaloo','Noto Sans KR',cursive", 'Boogaloo'],
-    ["'Righteous','Noto Sans KR',cursive", 'Righteous'],
-    ["'Comfortaa','Noto Sans KR',cursive", 'Comfortaa'],
+    ["'Fredoka','Jua',sans-serif", 'Fredoka'],
+    ["'Quicksand','Jua',sans-serif", 'Quicksand'],
   ]],
 ];
 const FONT_NAME = Object.fromEntries(FONTS.flatMap(g => g[1]));
@@ -767,7 +778,7 @@ const PRESETS = [
   { name:'블랙 태그', p:{ color:'#ffffff', useGrad:false, outline:'none', bubble:'pill', bubbleColor:'#1c1c1f', bubbleBorder:'#ffffff', bubbleBorderW:0, bubblePad:32, shadowBlur:0, shadowX:0, shadowY:0 } },
   { name:'크림 라벨', p:{ color:'#7a5a3a', useGrad:false, outline:'none', bubble:'box', bubbleColor:'#fbf1e2', bubbleBorder:'#efdcc2', bubbleBorderW:3, bubblePad:30, shadowBlur:0, shadowX:0, shadowY:0 } },
   { name:'네온', tile:'#17171a', p:{ color:'#fff6fb', useGrad:false, outline:'glow', strokeColor:'#ff4fa0', strokeWidth:8, shadowBlur:0, shadowX:0, shadowY:0, bubble:'none' } },
-  { name:'손글씨', p:{ font:"'Nanum Pen Script','Noto Sans KR',cursive", color:'#2b2b2f', useGrad:false, outline:'none', shadowBlur:0, shadowX:0, shadowY:0, bubble:'none' } },
+  { name:'손글씨', p:{ font:"'omyu_pretty','Jua',cursive", color:'#2b2b2f', useGrad:false, outline:'none', shadowBlur:0, shadowX:0, shadowY:0, bubble:'none' } },
 ];
 
 const BG_LIST = ['transparent','#ffffff','#fff4c2','#ffe3ec','#ece6ff','#dff5ea','#e7f5ff','#24193a','grad:#ffd1dc:#e0d4ff','grad:#fff1b8:#ffc8dd','grad:#c9f2ff:#e6d8ff'];
@@ -1118,7 +1129,7 @@ function setProp(p, v){
   }
   draft[p] = v;
   const l = selLayer(); if (l) l[p] = v;
-  if (p === 'font') document.fonts.load(`40px ${v}`, '가A').then(() => { wCache.clear(); inkCache.clear(); render(); });
+  if (p === 'font') document.fonts.load(`40px ${v}`, '가A').then(() => { wCache.clear(); inkCache.clear(); render(); }).catch(() => {});
   syncUI(); renderLayerList(); render(); scheduleCommit();
 }
 const RESETS = {
@@ -1138,7 +1149,7 @@ function resetStyle(g){
 function applyPreset(i){
   const p = PRESETS[i].p;
   Object.assign(draft, p); const l = selLayer(); if (l) Object.assign(l, p);
-  if (p.font) document.fonts.load(`40px ${p.font}`, '가A').then(() => { wCache.clear(); inkCache.clear(); render(); });
+  if (p.font) document.fonts.load(`40px ${p.font}`, '가A').then(() => { wCache.clear(); inkCache.clear(); render(); }).catch(() => {});
   syncUI(); renderLayerList(); render(); commit();
   toast(`'${PRESETS[i].name}' 스타일 적용`);
 }
@@ -1270,7 +1281,7 @@ function commit(){
 function scheduleCommit(){ clearTimeout(commitTimer); commitTimer = setTimeout(commit, 350); }
 function applySnap(s){
   const o = JSON.parse(s);
-  layers = (o.layers || []).map(l => ({ ...DEFAULTS, ...l }));
+  layers = (o.layers || []).map(l => ({ ...DEFAULTS, ...l })).map(l => FONT_NAME[l.font] ? l : { ...l, font: DEFAULTS.font });
   nextId = Math.max(o.nextId || 1, ...layers.map(l => l.id + 1));
   selId = layers.some(l => l.id === o.selId) ? o.selId : null;
   bgColor = o.bgColor || 'transparent';
