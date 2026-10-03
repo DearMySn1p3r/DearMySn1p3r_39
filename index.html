@@ -2284,7 +2284,8 @@ function heroHTML(){
 }
 function updStoreMock(){
   const st = setData.store, hero = $('storeHero'); if (!hero) return;
-  hero.style.background = `radial-gradient(120% 90% at 50% 0%, ${st.g1} 0%, ${st.g2} 58%, #fff 100%)`;
+  // 두 색을 부드럽게 잇고, 아래쪽만 흰색으로 천천히 녹아들게 (링/띠 생기지 않도록)
+  hero.style.background = `linear-gradient(180deg, rgba(255,255,255,0) 45%, rgba(255,255,255,.25) 62%, rgba(255,255,255,.62) 80%, rgba(255,255,255,.9) 92%, #fff 100%), linear-gradient(160deg, ${st.g1} 0%, ${st.g2} 100%)`;
   const html = heroHTML(); if (hero.dataset.k !== html){ hero.innerHTML = html; hero.dataset.k = html; }
   const tags = st.tags.trim() ? st.tags.split(',').map(t => t.trim()).filter(Boolean) : autoTags();
   $('storeTags').innerHTML = tags.map(t => `<span>${esc(t)}</span>`).join('');
